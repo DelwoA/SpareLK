@@ -5,8 +5,8 @@ import {
   faPlus,
   faStore,
   faUser,
-} from '@fortawesome/free-solid-svg-icons';
-import { useState } from 'react';
+} from "@fortawesome/free-solid-svg-icons";
+import { useState, useEffect } from "react";
 import {
   FiUser,
   FiShoppingCart,
@@ -14,175 +14,510 @@ import {
   FiHome,
   FiGrid,
   FiLogOut,
-} from 'react-icons/fi';
-import { useDispatch, useSelector } from 'react-redux';
-import { Link, useNavigate } from 'react-router-dom';
-import { RootState } from '../store/store';
-import { userActions } from '../reducers/userSlice';
-import Li from './Li';
-import { EUserRole } from '../types';
-import Swal from 'sweetalert2';
+  FiSearch,
+  FiMenu,
+  FiX,
+} from "react-icons/fi";
+import { Search } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+import { Link, useNavigate } from "react-router-dom";
+import { RootState } from "../store/store";
+import { userActions } from "../reducers/userSlice";
+import Li from "./Li";
+import { EUserRole } from "../types";
+import Swal from "sweetalert2";
+import { Button } from "@/components/ui/button";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user } = useSelector((state: RootState) => state.user);
   const { cartItems } = useSelector((state: RootState) => state.cart);
-  const [keyword, setKeyword] = useState('');
+  const [keyword, setKeyword] = useState("");
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+      if (window.innerWidth >= 768) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    const handleGlobalClick = () => {
+      if (isMenuOpen) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    // Only add listener when the menu is open
+    if (isMenuOpen) {
+      // Use setTimeout to delay adding the listener until after the current click is processed
+      setTimeout(() => {
+        document.addEventListener("click", handleGlobalClick);
+      }, 0);
+    }
+
+    return () => {
+      document.removeEventListener("click", handleGlobalClick);
+    };
+  }, [isMenuOpen]);
+
   const logoutAlert = () => {
     Swal.fire({
-      title: 'Are you sure?',
+      title: "Are you sure?",
       text: "You won't be able to revert this!",
-      icon: 'warning',
+      icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, Logout!',
+      confirmButtonColor: "#3085d6",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, Logout!",
     }).then((result) => {
       if (result.isConfirmed) {
         setTimeout(() => {
           dispatch(userActions.logout());
-          navigate('/');
+          navigate("/");
         }, 300);
       }
     });
   };
 
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (keyword.trim()) {
+      navigate("/shop", { state: { keyword } });
+      setKeyword("");
+      setIsMobileMenuOpen(false);
+    }
+  };
+
   return user ? (
     <>
-      {/* Desktop Navbar */}
-      <nav className="bg-main hidden md:flex items-center gap-4 lg:gap-8 px-4 md:px-16 lg:px-28 py-2 w-screen z-30">
+      {/* Desktop and Tablet Navbar */}
+      <nav className="bg-white h-16 hidden md:flex items-center gap-4 lg:gap-8 px-4 md:px-6 lg:px-16 xl:px-28 py-2 w-full max-w-screen z-30 transition-all duration-300 shadow-sm">
         <div className="flex items-center space-x-4">
           <Link
             to="/"
             className="flex items-center space-x-1 text-light font-bold text-xl hover:scale-105 hover:text-gray-800 duration-200"
           >
-            <img className="h-6 lg:h-8" src="/logo-light.png" alt="sparelk-logo" />
+            <img
+              className="h-6 lg:h-8"
+              src="/logo-light.png"
+              alt="sparelk-logo"
+            />
           </Link>
         </div>
 
-        {/* Center links */}
+        {/* Center links - responsive spacing */}
         {user.role == EUserRole.BUYER && (
-          <div className="flex items-center space-x-2 lg:space-x-6 text-light text-sm">
-            <Link to="/" className="font-semibold text-light hover:text-black">
-              Home
-            </Link>
-            <Link to="/shop" className="font-semibold text-light hover:text-white">
-              Shop
-            </Link>
-            <a href="#footer" className="font-semibold text-light hover:text-white">
-              Contacts
-            </a>
+          <div className="flex items-center gap-x-1 md:gap-x-0 lg:gap-x-2 text-light text-sm transition-all duration-300">
+            <Button variant="ghost" asChild className="px-2 md:px-3 lg:px-4">
+              <Link to="/" className="font-semibold text-slate-800">
+                Home
+              </Link>
+            </Button>
+            <Button variant="ghost" asChild className="px-2 md:px-3 lg:px-4">
+              <Link to="/shop" className="font-semibold text-slate-800">
+                Shop
+              </Link>
+            </Button>
+            <Button variant="ghost" asChild className="px-2 md:px-3 lg:px-4">
+              <Link to="#footer" className="font-semibold text-slate-800">
+                Contacts
+              </Link>
+            </Button>
           </div>
         )}
 
-        {/* Search bar */}
+        {/* Search bar - responsive width */}
         {user.role !== EUserRole.SELLER ? (
           <form
-            className="flex items-center flex-grow mx-10"
-            onSubmit={(e) => {
-              e.preventDefault();
-              navigate('/shop', { state: { keyword } });
-              setKeyword('');
-            }}
+            className="flex items-center flex-grow md:mx-4 lg:mx-10 transition-all duration-300"
+            onSubmit={handleSearchSubmit}
           >
-            <input
-              value={keyword}
-              onChange={(e) => setKeyword(e.target.value)}
-              type="text"
-              placeholder="Enter Item Code or name here..."
-              className="border text-sm border-gray-300 rounded-l-full py-2 px-4 flex-grow"
-            />
-            <button className="bg-light border text-sm border-gray-300 text-main rounded-r-full px-4 py-2 hover:bg-light">
-              Search
-            </button>
+            <div className="flex w-full items-center border border-slate-300 rounded-full overflow-hidden">
+              <div className="flex-grow flex items-center pl-4 pr-2 py-2">
+                <Search className="h-5 w-5 text-gray-500" />
+                <input
+                  value={keyword}
+                  onChange={(e) => setKeyword(e.target.value)}
+                  type="text"
+                  placeholder="Search by part number, name, or vehicle..."
+                  className="flex-grow outline-none ml-2 text-sm"
+                />
+              </div>
+              <button className="bg-orange-400 hover:bg-orange-500 text-sm text-white font-bold tracking-wide px-4 md:px-6 lg:px-8 py-2.5 transition-all duration-200">
+                Search
+              </button>
+            </div>
           </form>
         ) : (
           <div className="flex-grow" />
         )}
 
         {/* Right section */}
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center">
           {user.role == EUserRole.BUYER && (
-            <Link to="cart" className="relative border-r-2 border-gray-700 pr-4">
-              <FiShoppingCart className="text-light h-6 w-6 hover:text-light cursor-pointer hover:scale-105 hover:rotate-6 duration-75" />
+            <Link to="cart" className="relative border-slate-300 mr-1">
+              <FiShoppingCart className="text-slate-600 h-6 w-6 hover:text-light cursor-pointer hover:scale-105 hover:rotate-6 duration-75" />
               {cartItems.length > 0 && (
-                <div className="size-5 bg-red-600 border-2 text-sm text-white flex items-center justify-center border-red-400 rounded-full absolute -top-2 right-2">
+                <div className="size-5 bg-amber-600 border-2 text-sm text-white flex items-center justify-center border-orange-400 rounded-full absolute -top-2 right-2">
+                  {cartItems.length}
+                </div>
+              )}
+            </Link>
+          )}
+          <span className="h-8 border-l border-gray-300 ml-5 mr-3"></span>
+
+          <div
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsMenuOpen(!isMenuOpen);
+            }}
+            className="flex items-center gap-2 cursor-pointer relative"
+          >
+            <Button asChild variant="ghost" className="hidden sm:flex">
+              <div>
+                <FiUser className="text-slate-600 h-6 w-6 hover:text-light cursor-pointer" />
+                <span className="text-slate-600 text-sm ml-2 hidden md:inline">
+                  Welcome, <span className="font-bold">{user.firstName}</span>
+                </span>
+                <FiChevronDown
+                  className={`transition duration-200 ease-in-out ml-1 ${
+                    isMenuOpen ? "rotate-0" : "-rotate-90"
+                  }`}
+                />
+              </div>
+            </Button>
+
+            <div
+              onClick={(e) => e.stopPropagation()}
+              className={`absolute bg-card text-slate-800 shadow-lg w-64 p-2 rounded-md top-[120%] right-0 ring-1 ring-black/5 transform transition-all duration-200 ease-in-out origin-top-right ${
+                isMenuOpen
+                  ? "opacity-100 scale-100 translate-y-0"
+                  : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
+              }`}
+            >
+              {user.role === EUserRole.SELLER ? (
+                <>
+                  <Li to="/" icon={faUser}>
+                    My Profile
+                  </Li>
+                  <Li to="/seller-form" icon={faStore}>
+                    My Store
+                  </Li>
+                  <Li to="/manage-items" icon={faClipboardList}>
+                    Manage Items
+                  </Li>
+                  <Li to="/add-item/new" icon={faPlus}>
+                    Add a Item
+                  </Li>
+                </>
+              ) : user.role === EUserRole.BUYER ? (
+                <>
+                  <Li to="/profile" icon={faUser}>
+                    My Profile
+                  </Li>
+                  <Li to="/profile/my-orders" icon={faBoxOpen}>
+                    Orders
+                  </Li>
+                  <Li to="/profile/seller-form" icon={faStore}>
+                    {user.store ? "Store Profile" : "Be a Seller"}
+                  </Li>
+                </>
+              ) : null}
+
+              <Li to="/" icon={faLeftLong} onClick={logoutAlert}>
+                Log Out
+              </Li>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Mobile Navbar - Top */}
+      <nav className="md:hidden bg-white shadow-sm flex items-center justify-between px-4 py-3 w-full z-40">
+        <Link
+          to="/"
+          className="flex items-center space-x-1 text-light font-bold text-lg hover:text-gray-800 duration-200"
+        >
+          <img className="h-6" src="/logo-light.png" alt="sparelk-logo" />
+        </Link>
+
+        <div className="flex items-center gap-3">
+          {user.role == EUserRole.BUYER && (
+            <Link to="cart" className="relative">
+              <FiShoppingCart className="text-slate-600 h-6 w-6" />
+              {cartItems.length > 0 && (
+                <div className="size-5 bg-amber-600 border-2 text-sm text-white flex items-center justify-center border-orange-400 rounded-full absolute -top-2 right-2">
                   {cartItems.length}
                 </div>
               )}
             </Link>
           )}
 
-          <div
-            onMouseOver={() => setIsMenuOpen(true)}
-            onMouseOut={() => setIsMenuOpen(false)}
-            className="flex items-center gap-2 cursor-pointer relative"
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="p-1"
           >
-            <FiUser className="text-light h-6 w-6 hover:text-light cursor-pointer" />
-            <span className="text-light text-sm">
-              Welcome, <b>{user.firstName}</b>
-            </span>
-            <FiChevronDown />
-
-            {isMenuOpen && (
-              <div className="absolute bg-main text-light shadow-md w-64 p-2 rounded-md top-[100%] right-0 left-0 m-auto">
-                {user.role === EUserRole.SELLER ? (
-                  <>
-                    <Li to="/" icon={faUser}>My Profile</Li>
-                    <Li to="/seller-form" icon={faStore}>My Store</Li>
-                    <Li to="/manage-items" icon={faClipboardList}>Manage Items</Li>
-                    <Li to="/add-item/new" icon={faPlus}>Add a Item</Li>
-                  </>
-                ) : user.role === EUserRole.BUYER ? (
-                  <>
-                    <Li to="/profile" icon={faUser}>My Profile</Li>
-                    <Li to="/profile/my-orders" icon={faBoxOpen}>Orders</Li>
-                    <Li to="/profile/seller-form" icon={faStore}>
-                      {user.store ? 'Store Profile' : 'Be a Seller'}
-                    </Li>
-                  </>
-                ) : null}
-
-                <Li to="/" icon={faLeftLong} onClick={logoutAlert}>Log Out</Li>
-              </div>
+            {isMobileMenuOpen ? (
+              <FiX className="text-slate-600 h-6 w-6" />
+            ) : (
+              <FiMenu className="text-slate-600 h-6 w-6" />
             )}
-          </div>
+          </button>
         </div>
       </nav>
 
-      {/* Mobile Navbar */}
-      <nav className="md:hidden fixed bottom-0 w-full bg-main border-t border-gray-300 z-50 flex justify-around items-center py-2 shadow-md">
-        <Link to="/" className="flex flex-col items-center text-sm text-light">
-          <FiHome className="text-xl" />
+      {/* Mobile Menu Overlay */}
+      <div
+        className={`md:hidden fixed inset-0 bg-black/50 z-30 transition-opacity duration-300 ${
+          isMobileMenuOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        }`}
+        onClick={() => setIsMobileMenuOpen(false)}
+      />
+
+      {/* Mobile Menu Panel */}
+      <div
+        className={`md:hidden fixed top-[56px] right-0 bottom-[56px] w-3/4 bg-white shadow-lg z-40 transform transition-transform duration-300 ease-in-out overflow-auto ${
+          isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        {/* User Info */}
+        <div className="p-4 border-b border-gray-200">
+          <div className="flex items-center gap-3">
+            <div className="bg-slate-100 rounded-full p-2">
+              <FiUser className="text-slate-600 h-5 w-5" />
+            </div>
+            <div>
+              <p className="text-sm font-medium">Welcome,</p>
+              <p className="font-bold text-slate-800">{user.firstName}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Mobile Search */}
+        {user.role !== EUserRole.SELLER && (
+          <form
+            className="p-4 border-b border-gray-200"
+            onSubmit={handleSearchSubmit}
+          >
+            <div className="flex w-full items-center border border-slate-300 rounded-full overflow-hidden">
+              <div className="flex-grow flex items-center pl-3 pr-2 py-2">
+                <FiSearch className="h-4 w-4 text-gray-500" />
+                <input
+                  value={keyword}
+                  onChange={(e) => setKeyword(e.target.value)}
+                  type="text"
+                  placeholder="Search products..."
+                  className="flex-grow outline-none ml-2 text-sm"
+                />
+              </div>
+              <button className="bg-orange-400 hover:bg-orange-500 text-sm text-white font-bold px-4 py-2">
+                Search
+              </button>
+            </div>
+          </form>
+        )}
+
+        {/* Navigation Links */}
+        <div className="p-4">
+          <ul className="space-y-2">
+            <li>
+              <Link
+                to="/"
+                className="flex items-center gap-3 p-2 rounded-md hover:bg-slate-100"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <FiHome className="text-slate-600 h-5 w-5" />
+                <span className="font-medium">Home</span>
+              </Link>
+            </li>
+            {user.role === EUserRole.BUYER && (
+              <>
+                <li>
+                  <Link
+                    to="/shop"
+                    className="flex items-center gap-3 p-2 rounded-md hover:bg-slate-100"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <FiGrid className="text-slate-600 h-5 w-5" />
+                    <span className="font-medium">Shop</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/cart"
+                    className="flex items-center gap-3 p-2 rounded-md hover:bg-slate-100"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <FiShoppingCart className="text-slate-600 h-5 w-5" />
+                    <span className="font-medium">Cart</span>
+                    {cartItems.length > 0 && (
+                      <span className="bg-amber-600 text-white text-xs px-2 py-1 rounded-full">
+                        {cartItems.length}
+                      </span>
+                    )}
+                  </Link>
+                </li>
+              </>
+            )}
+            <li>
+              <Link
+                to="/profile"
+                className="flex items-center gap-3 p-2 rounded-md hover:bg-slate-100"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <FiUser className="text-slate-600 h-5 w-5" />
+                <span className="font-medium">Profile</span>
+              </Link>
+            </li>
+            {user.role === EUserRole.SELLER && (
+              <>
+                <li>
+                  <Link
+                    to="/seller-form"
+                    className="flex items-center gap-3 p-2 rounded-md hover:bg-slate-100"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <FontAwesomeIcon
+                      icon={faStore}
+                      className="text-slate-600 h-5 w-5"
+                    />
+                    <span className="font-medium">My Store</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/manage-items"
+                    className="flex items-center gap-3 p-2 rounded-md hover:bg-slate-100"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <FontAwesomeIcon
+                      icon={faClipboardList}
+                      className="text-slate-600 h-5 w-5"
+                    />
+                    <span className="font-medium">Manage Items</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/add-item/new"
+                    className="flex items-center gap-3 p-2 rounded-md hover:bg-slate-100"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <FontAwesomeIcon
+                      icon={faPlus}
+                      className="text-slate-600 h-5 w-5"
+                    />
+                    <span className="font-medium">Add an Item</span>
+                  </Link>
+                </li>
+              </>
+            )}
+            {user.role === EUserRole.BUYER && (
+              <>
+                <li>
+                  <Link
+                    to="/profile/my-orders"
+                    className="flex items-center gap-3 p-2 rounded-md hover:bg-slate-100"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <FontAwesomeIcon
+                      icon={faBoxOpen}
+                      className="text-slate-600 h-5 w-5"
+                    />
+                    <span className="font-medium">Orders</span>
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/profile/seller-form"
+                    className="flex items-center gap-3 p-2 rounded-md hover:bg-slate-100"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <FontAwesomeIcon
+                      icon={faStore}
+                      className="text-slate-600 h-5 w-5"
+                    />
+                    <span className="font-medium">
+                      {user.store ? "Store Profile" : "Be a Seller"}
+                    </span>
+                  </Link>
+                </li>
+              </>
+            )}
+            <li>
+              <button
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  logoutAlert();
+                }}
+                className="flex items-center gap-3 p-2 rounded-md hover:bg-slate-100 w-full text-left"
+              >
+                <FiLogOut className="text-slate-600 h-5 w-5" />
+                <span className="font-medium">Log Out</span>
+              </button>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      {/* Mobile Bottom Navbar */}
+      <nav className="md:hidden fixed bottom-0 w-full bg-white border-t border-gray-200 z-40 flex justify-around items-center py-2 shadow-md">
+        <Link
+          to="/"
+          className="flex flex-col items-center text-xs text-slate-600"
+          onClick={() => setIsMobileMenuOpen(false)}
+        >
+          <FiHome className="text-lg mb-0.5" />
           <span>Home</span>
         </Link>
-        <Link to="/shop" className="flex flex-col items-center text-sm text-light">
-          <FiGrid className="text-xl" />
-          <span>Shop</span>
-        </Link>
+
         {user.role === EUserRole.BUYER && (
-          <Link to="/cart" className="flex flex-col items-center text-sm text-light relative">
-            <FiShoppingCart className="text-xl" />
-            <span>Cart</span>
-            {cartItems.length > 0 && (
-              <div className="absolute top-0 right-0 translate-x-2 -translate-y-1 bg-red-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
-                {cartItems.length}
-              </div>
-            )}
-          </Link>
+          <>
+            <Link
+              to="/shop"
+              className="flex flex-col items-center text-xs text-slate-600"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              <FiGrid className="text-lg mb-0.5" />
+              <span>Shop</span>
+            </Link>
+
+            <Link
+              to="/cart"
+              className="flex flex-col items-center text-xs text-slate-600 relative"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              <FiShoppingCart className="text-lg mb-0.5" />
+              <span>Cart</span>
+              {cartItems.length > 0 && (
+                <div className="absolute top-0 right-1 -translate-y-1 translate-x-2 bg-orange-500 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center">
+                  {cartItems.length}
+                </div>
+              )}
+            </Link>
+          </>
         )}
-        <Link to="/profile" className="flex flex-col items-center text-sm text-light">
-          <FiUser className="text-xl" />
+
+        <Link
+          to="/profile"
+          className="flex flex-col items-center text-xs text-slate-600"
+          onClick={() => setIsMobileMenuOpen(false)}
+        >
+          <FiUser className="text-lg mb-0.5" />
           <span>Profile</span>
         </Link>
-        <button onClick={logoutAlert} className="flex flex-col items-center text-sm text-light">
-          <FiLogOut className="text-xl" />
-          <span>Logout</span>
-        </button>
       </nav>
     </>
   ) : null;
