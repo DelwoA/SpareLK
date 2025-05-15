@@ -244,3 +244,30 @@ button:focus-visible {
 .mySwiper .swiper-slide-thumb-active {
   opacity: 1;
 }
+
+/* Custom navigation arrow styles */
+.swiper-button-next,
+.swiper-button-prev {
+  color: #fff !important; /* Changes the arrow color to white */
+  font-size: 10px !important; /* Makes the arrows smaller */
+  transform: scale(0.6); /* Additional size reduction */
+  transition: transform 0.2s ease-in-out; /* Smooth transition for hover effect */
+}
+
+/* Arrow hover state with size increase */
+.swiper-button-next:hover,
+.swiper-button-prev:hover {
+  color: #fff !important; /* Keep white color on hover */
+  transform: scale(0.9); /* Slightly enlarge the arrow on hover */
+}
+
+/* Custom pagination bullet styles */
+.swiper-pagination-bullet {
+  background: rgba(255, 255, 255, 0.5) !important; /* Default bullet color */
+  opacity: 1;
+}
+
+/* Active pagination bullet style */
+.swiper-pagination-bullet-active {
+  background: #f97316 !important; /* Orange-500 active bullet color */
+}

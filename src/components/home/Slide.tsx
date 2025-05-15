@@ -32,7 +32,7 @@ export default function Slide({ h1, p, btnText, imgLink, handleClick }: Props) {
         <Button
           onClick={handleClick}
           size="lg"
-          className="bg-orange-400 hover:bg-orange-500 text-white font-medium text-base shadow-lg hover:shadow-xl transition duration-250"
+          className="bg-orange-500 hover:bg-orange-400 text-white font-medium text-base shadow-lg hover:shadow-xl transition duration-250"
         >
           {btnText}
         </Button>

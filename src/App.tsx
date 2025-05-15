@@ -25,6 +25,11 @@ import { RootState } from "./store/store";
 function App() {
   const { user } = useSelector((root: RootState) => root.user);
   // const user = { role: EUserRole.SELLER }
+  // TODO: Change all the anchor tags to Link tags.
+  // TODO: Add a loading states, during loading of components, add skeleton loaders. During error of loading, show error message in red.
+  // TODO: Add sonners (toast notifications) for success and error messages, and at necessary places.
+  // TODO: Remove all unncessary pre-defined color values (specially the bg-main).
+  // TODO: Remember to update all the desktop and mobile views to make them all consistent and responsive.
 
   return (
     <div className="flex flex-col min-h-screen h-screen items-center">

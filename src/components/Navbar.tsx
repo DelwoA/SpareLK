@@ -102,6 +102,32 @@ const Navbar = () => {
 
   return user ? (
     <>
+      {/* Nav Bar Header */}
+      <header className="w-full border-b bg-background">
+        {/* Top bar */}
+        <div className="border-b bg-slate-900 text-white">
+          <div className="container mx-auto px-4 md:px-6 lg:px-16 xl:px-28 py-2">
+            <div className="flex items-center justify-between text-sm">
+              <p className="font-medium">Free shipping on orders over $75</p>
+              <div className="hidden md:flex items-center gap-4">
+                <Link
+                  to="#"
+                  className="hover:text-orange-400 transition-colors duration-200"
+                >
+                  Track Order
+                </Link>
+                <span>|</span>
+                <Link
+                  to="#"
+                  className="hover:text-orange-400 transition-colors duration-200"
+                >
+                  Help Center
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
       {/* Desktop and Tablet Navbar */}
       <nav className="bg-white h-16 hidden md:flex items-center gap-4 lg:gap-8 px-4 md:px-6 lg:px-16 xl:px-28 py-2 w-full max-w-screen z-30 transition-all duration-300 shadow-sm">
         <div className="flex items-center space-x-4">
@@ -109,11 +135,28 @@ const Navbar = () => {
             to="/"
             className="flex items-center space-x-1 text-light font-bold text-xl hover:scale-105 hover:text-gray-800 duration-200"
           >
-            <img
-              className="h-6 lg:h-8"
-              src="/logo-light.png"
-              alt="sparelk-logo"
-            />
+            {/* Logo */}
+            <div className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-500">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="text-white"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M8 12h8" />
+                  <path d="M12 8v8" />
+                </svg>
+              </div>
+              <span className="text-xl font-bold">SpareLK</span>
+            </div>
           </Link>
         </div>
 
@@ -155,7 +198,7 @@ const Navbar = () => {
                   className="flex-grow outline-none ml-2 text-sm"
                 />
               </div>
-              <button className="bg-orange-400 hover:bg-orange-500 text-sm text-white font-bold tracking-wide px-4 md:px-6 lg:px-8 py-2.5 transition-all duration-200">
+              <button className="bg-orange-500 hover:bg-orange-400 text-sm text-white font-bold tracking-wide px-4 md:px-6 lg:px-8 py-2.5 transition-all duration-200">
                 Search
               </button>
             </div>
