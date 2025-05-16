@@ -108,7 +108,9 @@ const Navbar = () => {
         <div className="border-b bg-slate-900 text-white">
           <div className="container mx-auto px-4 md:px-6 lg:px-16 xl:px-28 py-2">
             <div className="flex items-center justify-between text-sm">
-              <p className="font-medium">Free shipping on orders over $75</p>
+              <p className="font-medium">
+                Free shipping on orders over Rs. 30,000
+              </p>
               <div className="hidden md:flex items-center gap-4">
                 <Link
                   to="#"
