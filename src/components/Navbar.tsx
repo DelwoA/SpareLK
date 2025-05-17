@@ -25,17 +25,26 @@ import { RootState } from "../store/store";
 import { userActions } from "../reducers/userSlice";
 import Li from "./Li";
 import { EUserRole } from "../types";
-import Swal from "sweetalert2";
 import { Button } from "@/components/ui/button";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import LogoutDialog from "./LogoutDialog";
+import Logo from "./Logo";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user } = useSelector((state: RootState) => state.user);
   const { cartItems } = useSelector((state: RootState) => state.cart);
-  const [keyword, setKeyword] = useState("");
+  // Check URL for search keyword when on shop page
+  const searchParams = new URLSearchParams(window.location.search);
+  const initialKeyword =
+    window.location.pathname === "/shop"
+      ? searchParams.get("keyword") || ""
+      : "";
+
+  const [keyword, setKeyword] = useState(initialKeyword);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const [isLogoutDialogOpen, setLogoutDialogOpen] = useState(false);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -53,7 +62,12 @@ const Navbar = () => {
   }, []);
 
   useEffect(() => {
-    const handleGlobalClick = () => {
+    const handleGlobalClick = (e: MouseEvent) => {
+      // Don't close the menu if the click is on a link
+      if ((e.target as Element).closest("#nav-link")) {
+        return;
+      }
+
       if (isMenuOpen) {
         setIsMenuOpen(false);
       }
@@ -73,35 +87,32 @@ const Navbar = () => {
   }, [isMenuOpen]);
 
   const logoutAlert = () => {
-    Swal.fire({
-      title: "Are you sure?",
-      text: "You won't be able to revert this!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, Logout!",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        setTimeout(() => {
-          dispatch(userActions.logout());
-          navigate("/");
-        }, 300);
-      }
-    });
+    setLogoutDialogOpen(true);
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (keyword.trim()) {
-      navigate("/shop", { state: { keyword } });
-      setKeyword("");
+      // Navigate to shop with search query parameter to persist across page loads
+      const encodedKeyword = encodeURIComponent(keyword.trim());
+
+      // If already on shop page, use replace to update the URL without adding to history
+      if (window.location.pathname === "/shop") {
+        navigate(`/shop?keyword=${encodedKeyword}`, { replace: true });
+      } else {
+        navigate(`/shop?keyword=${encodedKeyword}`);
+      }
+
       setIsMobileMenuOpen(false);
     }
   };
 
   return user ? (
     <>
+      <LogoutDialog
+        isOpen={isLogoutDialogOpen}
+        onClose={() => setLogoutDialogOpen(false)}
+      />
       {/* Nav Bar Header */}
       <header className="w-full border-b bg-background">
         {/* Top bar */}
@@ -133,33 +144,7 @@ const Navbar = () => {
       {/* Desktop and Tablet Navbar */}
       <nav className="bg-white h-16 hidden md:flex items-center gap-4 lg:gap-8 px-4 md:px-6 lg:px-16 xl:px-28 py-2 w-full max-w-screen z-30 transition-all duration-300 shadow-sm">
         <div className="flex items-center space-x-4">
-          <Link
-            to="/"
-            className="flex items-center space-x-1 text-light font-bold text-xl hover:scale-105 hover:text-gray-800 duration-200"
-          >
-            {/* Logo */}
-            <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-500">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="text-white"
-                >
-                  <circle cx="12" cy="12" r="10" />
-                  <path d="M8 12h8" />
-                  <path d="M12 8v8" />
-                </svg>
-              </div>
-              <span className="text-xl font-bold">SpareLK</span>
-            </div>
-          </Link>
+          <Logo variant="dark" size="medium" />
         </div>
 
         {/* Center links - responsive spacing */}
@@ -189,7 +174,7 @@ const Navbar = () => {
             className="flex items-center flex-grow md:mx-4 lg:mx-10 transition-all duration-300"
             onSubmit={handleSearchSubmit}
           >
-            <div className="flex w-full items-center border border-slate-300 rounded-full overflow-hidden">
+            <div className="flex w-full items-center border border-slate-300 rounded-full overflow-hidden focus-within:border-orange-500 focus-within:border-[1.5px] transition-colors ease-in-out duration-200">
               <div className="flex-grow flex items-center pl-4 pr-2 py-2">
                 <Search className="h-5 w-5 text-gray-500" />
                 <input
@@ -197,7 +182,7 @@ const Navbar = () => {
                   onChange={(e) => setKeyword(e.target.value)}
                   type="text"
                   placeholder="Search by part number, name, or vehicle..."
-                  className="flex-grow outline-none ml-2 text-sm"
+                  className="flex-grow outline-none ml-2 text-sm focus:outline-none focus:ring-0"
                 />
               </div>
               <button className="bg-orange-500 hover:bg-orange-400 text-sm text-white font-bold tracking-wide px-4 md:px-6 lg:px-8 py-2.5 transition-all duration-200">
@@ -254,34 +239,65 @@ const Navbar = () => {
             >
               {user.role === EUserRole.SELLER ? (
                 <>
-                  <Li to="/" icon={faUser}>
+                  <Li to="/" icon={faUser} onClick={() => setIsMenuOpen(false)}>
                     My Profile
                   </Li>
-                  <Li to="/seller-form" icon={faStore}>
+                  <Li
+                    to="/seller-form"
+                    icon={faStore}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
                     My Store
                   </Li>
-                  <Li to="/manage-items" icon={faClipboardList}>
+                  <Li
+                    to="/manage-items"
+                    icon={faClipboardList}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
                     Manage Items
                   </Li>
-                  <Li to="/add-item/new" icon={faPlus}>
+                  <Li
+                    to="/add-item/new"
+                    icon={faPlus}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
                     Add a Item
                   </Li>
                 </>
               ) : user.role === EUserRole.BUYER ? (
                 <>
-                  <Li to="/profile" icon={faUser}>
+                  <Li
+                    to="/profile"
+                    icon={faUser}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
                     My Profile
                   </Li>
-                  <Li to="/profile/my-orders" icon={faBoxOpen}>
+                  <Li
+                    to="/profile/my-orders"
+                    icon={faBoxOpen}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
                     Orders
                   </Li>
-                  <Li to="/profile/seller-form" icon={faStore}>
-                    {user.store ? "Store Profile" : "Be a Seller"}
+                  <Li
+                    to="/profile/seller-form"
+                    icon={faStore}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {user.store ? "Store Profile" : "Become a Seller"}
                   </Li>
                 </>
               ) : null}
 
-              <Li to="/" icon={faLeftLong} onClick={logoutAlert}>
+              <Li
+                to="/"
+                icon={faLeftLong}
+                onClick={() => {
+                  setIsMenuOpen(false);
+                  logoutAlert();
+                }}
+              >
                 Log Out
               </Li>
             </div>
@@ -291,12 +307,7 @@ const Navbar = () => {
 
       {/* Mobile Navbar - Top */}
       <nav className="md:hidden bg-white shadow-sm flex items-center justify-between px-4 py-3 w-full z-40">
-        <Link
-          to="/"
-          className="flex items-center space-x-1 text-light font-bold text-lg hover:text-gray-800 duration-200"
-        >
-          <img className="h-6" src="/logo-light.png" alt="sparelk-logo" />
-        </Link>
+        <Logo variant="dark" size="small" />
 
         <div className="flex items-center gap-3">
           {user.role == EUserRole.BUYER && (
@@ -356,7 +367,7 @@ const Navbar = () => {
             className="p-4 border-b border-gray-200"
             onSubmit={handleSearchSubmit}
           >
-            <div className="flex w-full items-center border border-slate-300 rounded-full overflow-hidden">
+            <div className="flex w-full items-center border border-slate-300 rounded-full overflow-hidden focus-within:border-orange-500 transition-colors duration-200">
               <div className="flex-grow flex items-center pl-3 pr-2 py-2">
                 <FiSearch className="h-4 w-4 text-gray-500" />
                 <input
@@ -364,7 +375,7 @@ const Navbar = () => {
                   onChange={(e) => setKeyword(e.target.value)}
                   type="text"
                   placeholder="Search products..."
-                  className="flex-grow outline-none ml-2 text-sm"
+                  className="flex-grow outline-none ml-2 text-sm focus:outline-none focus:ring-0"
                 />
               </div>
               <button className="bg-orange-400 hover:bg-orange-500 text-sm text-white font-bold px-4 py-2">
@@ -495,7 +506,7 @@ const Navbar = () => {
                       className="text-slate-600 h-5 w-5"
                     />
                     <span className="font-medium">
-                      {user.store ? "Store Profile" : "Be a Seller"}
+                      {user.store ? "Store Profile" : "Become a Seller"}
                     </span>
                   </Link>
                 </li>

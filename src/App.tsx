@@ -29,7 +29,12 @@ function App() {
   // TODO: Add a loading states, during loading of components, add skeleton loaders. During error of loading, show error message in red.
   // TODO: Add sonners (toast notifications) for success and error messages, and at necessary places.
   // TODO: Remove all unncessary pre-defined color values (specially the bg-main).
+  // TODO: Remove all unncessary imports.
+  // TODO: Remove any unncessary files remaining which contribute nothing to the project after the UI revamp update to this project.
   // TODO: Remember to update all the desktop and mobile views to make them all consistent and responsive.
+  // TODO: Make sure that the things from the front-end and what it displays are in sync with the backend. For example, personal details, credit card numbers that are updated on the front-end are updated with the backedn as well.
+  // TODO: Fix order numbers display the full ID from the database. Else the order numbers are wrong here.
+  // TODO: Make sure finally the imports are also sorted in a more readable and clean way, without random imports here and there, making imports reading difficult.
 
   return (
     <div className="flex flex-col min-h-screen h-screen items-center">

@@ -3,7 +3,6 @@ import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPenToSquare } from "@fortawesome/free-solid-svg-icons";
 import { useDispatch, useSelector } from "react-redux";
-import Swal from "sweetalert2";
 import { RootState } from "../store/store";
 import { api } from "../api/api";
 import { cartActions } from "../reducers/cartSlice";
@@ -12,8 +11,23 @@ import CreditCardForm from "../components/order/CreditCardForm";
 import AddressForm from "../components/order/AddressForm";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Button } from "@/components/ui/button";
-import { CreditCard, CircleCheckBig } from "lucide-react";
+import {
+  CreditCard,
+  CircleCheckBig,
+  CheckCircle,
+  AlertTriangle,
+  ShoppingBag,
+} from "lucide-react";
 import { userActions } from "../reducers/userSlice";
+import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 function PlaceOrder() {
   const navigate = useNavigate();
@@ -26,6 +40,7 @@ function PlaceOrder() {
   const [isCreditCardFormOpened, setCreditCardForm] = useState(false);
   const [total, setTotal] = useState(0);
   const [activeStep, setActiveStep] = useState("shipping");
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [shippingMethod, setShippingMethod] = useState<{
     type: "standard" | "express";
     fee: number;
@@ -243,7 +258,21 @@ function PlaceOrder() {
     }
   }
 
+  function initiateOrderPlacement() {
+    if (!addressInput.trim() || !cardDetails.number) {
+      toast.error("Please fill the address and credit card details", {
+        position: "bottom-right",
+      });
+      return;
+    }
+
+    setConfirmDialogOpen(true);
+  }
+
   function saveOrder() {
+    // Close the dialog
+    setConfirmDialogOpen(false);
+
     // Update user's credit card details if changed
     if (
       user &&
@@ -271,54 +300,29 @@ function PlaceOrder() {
       )
       .then((result) => {
         console.log(result.data.data);
-        orderConfirmedAlert();
+
+        // Show success toast
+        toast.success("Your order has been placed successfully", {
+          position: "bottom-right",
+          duration: 3000,
+          action: {
+            label: "View Orders",
+            onClick: () => navigate("/profile/my-orders"),
+          },
+        });
+
         if (location.pathname.split("/")[1] === "cart")
           dispatch(cartActions.clearCart());
+
         navigate("/");
       })
       .catch((err) => {
         console.log(err);
+        toast.error("Failed to place your order. Please try again.", {
+          position: "bottom-right",
+        });
       });
   }
-
-  const orderConfirmedAlert = () => {
-    Swal.fire({
-      position: "top-end",
-      icon: "success",
-      title: "Order Placed Successfully",
-      showConfirmButton: true,
-      confirmButtonText: "Check Orders",
-      timer: 3000,
-    }).then((result) => {
-      if (result.isConfirmed) {
-        navigate("/profile/my-orders");
-      }
-    });
-  };
-
-  const placeOrderAlert = () => {
-    if (!addressInput.trim() || !cardDetails.number) {
-      Swal.fire({
-        icon: "warning",
-        title: "Oops...",
-        text: "Please fill the address and credit card details",
-      });
-      return;
-    }
-    Swal.fire({
-      title: "Are you sure?",
-      text: "You won't be able to revert this!",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#3085d6",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Yes, Place Order",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        saveOrder();
-      }
-    });
-  };
 
   const handleShippingMethodChange = (method: "standard" | "express") => {
     if (method === "standard") {
@@ -916,7 +920,7 @@ function PlaceOrder() {
                   </Button>
                   <Button
                     className="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2.5 rounded-lg font-semibold"
-                    onClick={placeOrderAlert}
+                    onClick={initiateOrderPlacement}
                   >
                     Place Order
                   </Button>
@@ -1027,6 +1031,66 @@ function PlaceOrder() {
           </div>
         </div>
       </div>
+
+      {/* Order Confirmation Dialog */}
+      <Dialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-orange-100 mb-2">
+              <ShoppingBag className="h-6 w-6 text-orange-600" />
+            </div>
+            <DialogTitle className="text-center text-xl">
+              Confirm Order
+            </DialogTitle>
+            <DialogDescription className="text-center">
+              You're about to place an order for {orderItems.length} item
+              {orderItems.length > 1 ? "s" : ""}.
+              <p className="mt-1 text-sm">
+                Please review your order details before confirming.
+              </p>
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4">
+            <div className="bg-gray-50 rounded-lg p-3 mb-3">
+              <div className="flex justify-between text-sm mb-2">
+                <span className="text-gray-500">Subtotal:</span>
+                <span>Rs. {parseFloat(total.toFixed(2)).toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between text-sm mb-2">
+                <span className="text-gray-500">Shipping:</span>
+                <span>Rs. {shippingMethod.fee.toLocaleString()}</span>
+              </div>
+              <div className="flex justify-between font-medium border-t border-gray-200 pt-2 mt-2">
+                <span>Total:</span>
+                <span className="text-orange-600">
+                  Rs. {orderTotal.toLocaleString()}
+                </span>
+              </div>
+            </div>
+
+            <div className="text-center text-sm text-gray-500">
+              By confirming, you agree to pay the total amount of Rs.{" "}
+              {orderTotal.toLocaleString()}
+            </div>
+          </div>
+
+          <DialogFooter className="sm:justify-center gap-2 mt-2">
+            <Button
+              variant="outline"
+              onClick={() => setConfirmDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={saveOrder}
+              className="bg-orange-500 hover:bg-orange-600 text-white"
+            >
+              Confirm Order
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
