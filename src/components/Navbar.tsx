@@ -29,6 +29,7 @@ import { Button } from "@/components/ui/button";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import LogoutDialog from "./LogoutDialog";
 import Logo from "./Logo";
+import { X } from "lucide-react";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -96,15 +97,19 @@ const Navbar = () => {
       // Navigate to shop with search query parameter to persist across page loads
       const encodedKeyword = encodeURIComponent(keyword.trim());
 
-      // If already on shop page, use replace to update the URL without adding to history
-      if (window.location.pathname === "/shop") {
-        navigate(`/shop?keyword=${encodedKeyword}`, { replace: true });
-      } else {
-        navigate(`/shop?keyword=${encodedKeyword}`);
-      }
+      // Add timestamp to force URL change even if search term is the same
+      const timestamp = Date.now();
+      const searchUrl = `/shop?keyword=${encodedKeyword}&t=${timestamp}`;
 
+      navigate(searchUrl, { replace: true });
       setIsMobileMenuOpen(false);
     }
+  };
+
+  const handleClearSearch = () => {
+    // Clear search input and navigate to shop without search parameters
+    setKeyword("");
+    navigate("/shop", { replace: true });
   };
 
   return user ? (
@@ -180,10 +185,25 @@ const Navbar = () => {
                 <input
                   value={keyword}
                   onChange={(e) => setKeyword(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleSearchSubmit(e);
+                    }
+                  }}
                   type="text"
                   placeholder="Search by part number, name, or vehicle..."
                   className="flex-grow outline-none ml-2 text-sm focus:outline-none focus:ring-0"
                 />
+                {keyword && (
+                  <button
+                    type="button"
+                    onClick={handleClearSearch}
+                    className="text-gray-400 hover:text-gray-600 mr-2"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
               </div>
               <button className="bg-orange-500 hover:bg-orange-400 text-sm text-white font-bold tracking-wide px-4 md:px-6 lg:px-8 py-2.5 transition-all duration-200">
                 Search
@@ -377,6 +397,15 @@ const Navbar = () => {
                   placeholder="Search products..."
                   className="flex-grow outline-none ml-2 text-sm focus:outline-none focus:ring-0"
                 />
+                {keyword && (
+                  <button
+                    type="button"
+                    onClick={handleClearSearch}
+                    className="text-gray-400 hover:text-gray-600 mr-1"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
               </div>
               <button className="bg-orange-400 hover:bg-orange-500 text-sm text-white font-bold px-4 py-2">
                 Search
