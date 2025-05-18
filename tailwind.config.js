@@ -11,14 +11,6 @@ export default {
   theme: {
     extend: {
       colors: {
-        navbar: "#eab308",
-        main: "#FFB433",
-        light: "#212121",
-        dark: "#212121",
-        "link-color": "#008934",
-        "price-color": "#FF5207",
-        "bg-color": "#EFEFEF",
-        "pane-color": "#FFF",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {

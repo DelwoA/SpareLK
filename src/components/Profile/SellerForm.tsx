@@ -3,8 +3,8 @@ import { useDispatch, useSelector } from "react-redux";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 import { RootState } from "../../store/store";
-import { api } from "../../api/api";
-import { userActions } from "../../reducers/userSlice";
+import { api } from "@/api/api";
+import { userActions } from "@/reducers/userSlice";
 import {
   Store,
   User,
@@ -13,8 +13,12 @@ import {
   UploadCloud,
   AlertCircle,
   Check,
+  RefreshCcw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { SellerFormSkeleton } from "@/components/skeletons";
+import { ErrorMessage } from "@/components/ui/error-message";
+import { toast } from "sonner";
 
 export default function SellerForm() {
   const dispatch = useDispatch();
@@ -22,24 +26,26 @@ export default function SellerForm() {
 
   const user = useSelector((state: RootState) => state.user.user);
   const [formStep, setFormStep] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  if (!user) return <></>;
-
+  // Initialize all form state at the top, before any conditional returns
   const [formData, setFormData] = useState({
-    name: user.store ? user.store.name : "",
-    address: user.store
+    name: user?.store ? user.store.name : "",
+    address: user?.store
       ? user.store.address
-      : user.address
+      : user?.address
       ? `${user.address.no}, ${user.address.street}, ${user.address.city}`
       : "",
-    email: user.store ? user.store.email : user.email,
-    phone: user.store ? user.store.phone : "",
+    email: user?.store ? user.store.email : user?.email || "",
+    phone: user?.store ? user.store.phone : "",
     description: "",
     image: null,
   });
 
   const [imagePreview, setImagePreview] = useState<any>(
-    user.store ? "http://localhost:3000/images/" + user.store.image : null
+    user?.store ? "http://localhost:3000/images/" + user.store.image : null
   );
 
   const [errors, setErrors] = useState({
@@ -49,6 +55,35 @@ export default function SellerForm() {
     phone: false,
     image: false,
   });
+
+  // Simulate loading state for initial user data fetch
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (user) {
+        setLoading(false);
+
+        // Update form data when user data becomes available
+        setFormData({
+          name: user.store ? user.store.name : "",
+          address: user.store
+            ? user.store.address
+            : user.address
+            ? `${user.address.no}, ${user.address.street}, ${user.address.city}`
+            : "",
+          email: user.store ? user.store.email : user.email,
+          phone: user.store ? user.store.phone : "",
+          description: "",
+          image: null,
+        });
+
+        setImagePreview(
+          user.store ? "http://localhost:3000/images/" + user.store.image : null
+        );
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [user]);
 
   const validateCurrentStep = () => {
     let isValid = true;
@@ -149,8 +184,11 @@ export default function SellerForm() {
 
   const handleSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+    if (!user) return;
 
     if (!validateCurrentStep()) return;
+
+    setSubmitting(true);
 
     const fData = new FormData();
     fData.append("name", formData.name);
@@ -164,10 +202,15 @@ export default function SellerForm() {
   };
 
   function createStore(form: any) {
+    if (!user) return;
     api
       .post("store", form)
       .then((d) => {
         dispatch(userActions.setStore(d.data.data));
+        setSubmitting(false);
+        toast.success("Store Successfully Created", {
+          description: "You can now sell items on SpareLK",
+        });
         Swal.fire({
           position: "top-end",
           icon: "success",
@@ -181,14 +224,21 @@ export default function SellerForm() {
           }
         });
       })
-      .catch((e) => console.log(e));
+      .catch((e) => {
+        console.log(e);
+        setError("Failed to create store. Please try again.");
+        setSubmitting(false);
+      });
   }
 
   function updateStore(form: any) {
+    if (!user || !user.store) return;
     api
-      .put("store/" + user?.store._id, form)
+      .put("store/" + user.store._id, form)
       .then((d) => {
         dispatch(userActions.setStore(d.data.data));
+        setSubmitting(false);
+        toast.success("Store Profile Updated");
         Swal.fire({
           position: "top-end",
           icon: "success",
@@ -197,10 +247,15 @@ export default function SellerForm() {
           timer: 1500,
         });
       })
-      .catch((er) => console.log(er));
+      .catch((er) => {
+        console.log(er);
+        setError("Failed to update store. Please try again.");
+        setSubmitting(false);
+      });
   }
 
   function removeStore() {
+    if (!user || !user.store) return;
     Swal.fire({
       title: "Are you sure?",
       text: "Store and Items will be removed!",
@@ -211,12 +266,19 @@ export default function SellerForm() {
       confirmButtonText: "Yes, Remove Store!",
     }).then((result) => {
       if (result.isConfirmed) {
+        setSubmitting(true);
         api
-          .delete("store/" + user?.store._id)
+          .delete("store/" + user.store._id)
           .then(() => {
             dispatch(userActions.setStore(null));
+            toast.success("Store has been removed");
+            setSubmitting(false);
           })
-          .catch((er) => console.log(er));
+          .catch((er) => {
+            console.log(er);
+            setError("Failed to remove store. Please try again.");
+            setSubmitting(false);
+          });
 
         Swal.fire({
           title: "Removed!",
@@ -227,13 +289,41 @@ export default function SellerForm() {
     });
   }
 
+  // Conditional returns after all hooks
+  if (loading) {
+    return <SellerFormSkeleton />;
+  }
+
+  if (error) {
+    return (
+      <div className="w-full min-h-screen bg-gray-50">
+        <div className="container mx-auto px-4 pt-12 pb-20">
+          <div className="max-w-md mx-auto">
+            <ErrorMessage message={error} />
+            <div className="mt-4 flex justify-center">
+              <Button
+                onClick={() => setError(null)}
+                className="bg-orange-500 hover:bg-orange-600 text-white"
+              >
+                <RefreshCcw className="h-4 w-4 mr-2" />
+                Try Again
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) return <></>;
+
   return (
     <>
       <div className="w-full min-h-screen bg-gray-50">
         <div className="container mx-auto px-4 pt-12 pb-20">
           <div className="text-center max-w-3xl mx-auto mb-8">
             <h2 className="text-3xl font-bold tracking-tight mb-4">
-              {user.store ? "Update Store Profile" : "Register as a Seller"}
+              {user?.store ? "Update Store Profile" : "Register as a Seller"}
             </h2>
             <p className="text-lg text-gray-600">
               Complete the form below to start your seller journey with SpareLK
@@ -688,7 +778,7 @@ export default function SellerForm() {
                       </Button>
                     ) : (
                       <div className="ml-auto space-x-2">
-                        {user.store && (
+                        {user?.store && (
                           <Button
                             type="button"
                             onClick={removeStore}
@@ -702,7 +792,7 @@ export default function SellerForm() {
                           onClick={handleSubmit}
                           className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
                         >
-                          {user.store ? "Update Store" : "Create Store"}
+                          {user?.store ? "Update Store" : "Create Store"}
                         </Button>
                       </div>
                     )}

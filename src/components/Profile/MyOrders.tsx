@@ -24,6 +24,7 @@ import {
   XCircle,
   AlertTriangle,
   Check,
+  RefreshCcw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -43,6 +44,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { OrdersSkeleton } from "@/components/skeletons";
+import { ErrorMessage } from "@/components/ui/error-message";
 
 // Status badge component
 const StatusBadge = ({ status }: { status: string }) => {
@@ -104,12 +107,17 @@ export default function MyOrders() {
   const [orderToCancel, setOrderToCancel] = useState<any>(null);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [orderToConfirm, setOrderToConfirm] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     getOrderItems();
   }, []);
 
   function getOrderItems() {
+    setLoading(true);
+    setError(null);
+
     api
       .get("order/" + userId)
       .then((response) => {
@@ -117,15 +125,28 @@ export default function MyOrders() {
         setOrderItems(items);
 
         // Fetch item details for each order
-        items.forEach((order: any) => {
-          fetchItemDetails(order);
-        });
+        if (items.length > 0) {
+          Promise.all(items.map((order: any) => fetchItemDetails(order)))
+            .then(() => {
+              setLoading(false);
+            })
+            .catch((err) => {
+              console.error("Error fetching item details:", err);
+              setLoading(false);
+            });
+        } else {
+          setLoading(false);
+        }
       })
-      .catch((err) => console.error(err));
+      .catch((err) => {
+        console.error("Error fetching orders:", err);
+        setError("Failed to load your orders. Please try again.");
+        setLoading(false);
+      });
   }
 
   function fetchItemDetails(order: any) {
-    api
+    return api
       .get("item/" + order.itemId)
       .then((result) => {
         setOrderDetails((prev) => ({
@@ -136,7 +157,10 @@ export default function MyOrders() {
           },
         }));
       })
-      .catch((err) => console.log(err));
+      .catch((err) => {
+        console.log("Error fetching item details:", err);
+        return null;
+      });
   }
 
   // Filter orders based on active status
@@ -444,6 +468,31 @@ export default function MyOrders() {
     const shortId = id.slice(0, 4).toUpperCase();
     return `ORD-${new Date().getFullYear()}-${shortId}`;
   };
+
+  // Show loading state
+  if (loading) {
+    return <OrdersSkeleton />;
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="w-screen min-h-screen bg-gray-50 py-12 px-4 sm:px-6 md:px-8">
+        <div className="max-w-md mx-auto">
+          <ErrorMessage message={error} />
+          <div className="mt-4 flex justify-center">
+            <Button
+              onClick={() => getOrderItems()}
+              className="bg-orange-500 hover:bg-orange-600 text-white"
+            >
+              <RefreshCcw className="h-4 w-4 mr-2" />
+              Try Again
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full min-h-screen bg-gray-50">

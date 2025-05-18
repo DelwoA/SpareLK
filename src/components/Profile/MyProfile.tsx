@@ -19,24 +19,81 @@ import {
   ShoppingBag,
   Store,
   CheckCircle,
+  RefreshCcw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import LogoutDialog from "@/components/LogoutDialog";
+import { Skeleton } from "@/components/ui/skeleton";
+
+// Profile skeleton component
+function MyProfileSkeleton() {
+  return (
+    <div className="w-screen min-h-screen bg-gray-50 py-12 px-4 sm:px-6 md:px-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header skeleton */}
+        <div className="mb-8">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+            <div>
+              <Skeleton className="h-8 w-48 mb-2" />
+              <Skeleton className="h-4 w-64" />
+            </div>
+            <Skeleton className="h-10 w-28 mt-4 md:mt-0" />
+          </div>
+
+          {/* Tabs skeleton */}
+          <div className="flex border-b mb-6">
+            <Skeleton className="h-10 w-36 mx-2" />
+            <Skeleton className="h-10 w-32 mx-2" />
+            <Skeleton className="h-10 w-28 mx-2" />
+          </div>
+        </div>
+
+        {/* Content skeleton - Personal Info */}
+        <Card className="overflow-hidden">
+          <CardContent className="p-0">
+            <div className="px-6">
+              <div className="flex justify-between items-center p-6 border-b">
+                <Skeleton className="h-6 w-48" />
+                <Skeleton className="h-8 w-20" />
+              </div>
+              <div className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i}>
+                      <div className="flex items-center mb-2">
+                        <Skeleton className="h-4 w-4 mr-2 rounded-full" />
+                        <Skeleton className="h-4 w-24" />
+                      </div>
+                      <Skeleton className="h-10 w-full" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
 
 export default function MyProfile() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  // Add loading state back
+  const [loading, setLoading] = useState(true);
   const user = useSelector((state: RootState) => state.user.user);
-  if (!user) return <></>;
 
+  // Move hooks to the top before any conditional returns
   const [activeTab, setActiveTab] = useState("personal");
   const [isEditing, setIsEditing] = useState(false);
   const [isPasswordVisible, setPasswordVisible] = useState(false);
+  const [isLogoutDialogOpen, setLogoutDialogOpen] = useState(false);
 
   // Form states
-  const [tempUser, setTempUser] = useState<TUser>(user);
+  const [tempUser, setTempUser] = useState<TUser | null>(null);
   const [validations, setValidations] = useState({
     firstName: true,
     lastName: true,
@@ -50,10 +107,25 @@ export default function MyProfile() {
   // Credit card form states
   const [isCreditCardFormOpened, setCreditCardFormOpened] = useState(false);
 
-  // Update tempUser when user changes (e.g. after API updates)
+  // Initialize tempUser when user changes
   useEffect(() => {
-    setTempUser(user);
+    if (user) {
+      setTempUser(user);
+      // Simulate a slight delay for loading
+      const timer = setTimeout(() => {
+        setLoading(false);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
   }, [user]);
+
+  // Show loading skeleton while fetching user data
+  if (loading) {
+    return <MyProfileSkeleton />;
+  }
+
+  // If no user available, show nothing
+  if (!user || !tempUser) return <></>;
 
   // Begin editing user info
   const handleEditClick = () => {
@@ -105,22 +177,26 @@ export default function MyProfile() {
   };
 
   function removeCreditCard() {
+    if (!tempUser) return;
     setTempUser({ ...tempUser, creditCard: null });
     saveUser();
   }
 
   function removeAddress() {
+    if (!tempUser) return;
     setTempUser({ ...tempUser, address: null });
     saveUser();
   }
 
   function setAddress(address: TAddress | null) {
+    if (!tempUser) return;
     setTempUser({ ...tempUser, address: address });
     setAddressFormOpened(false);
     saveUser();
   }
 
   function setCreditCard(creditCard: TCreditCard | null) {
+    if (!tempUser) return;
     setTempUser({ ...tempUser, creditCard: creditCard });
     setCreditCardFormOpened(false);
     saveUser();
@@ -147,8 +223,6 @@ export default function MyProfile() {
         : setValidations({ ...validations, password: true });
     }
   };
-
-  const [isLogoutDialogOpen, setLogoutDialogOpen] = useState(false);
 
   const logoutAlert = () => {
     setLogoutDialogOpen(true);

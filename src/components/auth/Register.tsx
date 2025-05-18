@@ -6,6 +6,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import Button from "../Button";
 import Input from "./Input";
 import { Link, useNavigate } from "react-router-dom";
+import { AlertCircle, UserPlus } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ErrorMessage } from "@/components/ui/error-message";
 
 export default function Register() {
   // Shared fields
@@ -25,6 +28,8 @@ export default function Register() {
 
   const [isTermsOpen, setTermsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [componentLoading, setComponentLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -35,6 +40,7 @@ export default function Register() {
 
   const handleBuyerSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    setError(null);
 
     if (!firstName || !lastName || !email || !password || !confirmPassword) {
       toast.error("Please fill in all required fields");
@@ -72,7 +78,9 @@ export default function Register() {
       }
     } catch (err: any) {
       console.error(err);
-      toast.error(err.response?.data?.message || "Registration failed");
+      const errorMessage = err.response?.data?.message || "Registration failed";
+      toast.error(errorMessage);
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -80,6 +88,7 @@ export default function Register() {
 
   const handleSellerSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    setError(null);
 
     if (
       !firstName ||
@@ -146,11 +155,36 @@ export default function Register() {
       }
     } catch (err: any) {
       console.error(err);
-      toast.error(err.response?.data?.message || "Registration failed");
+      const errorMessage = err.response?.data?.message || "Registration failed";
+      toast.error(errorMessage);
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
+
+  if (componentLoading) {
+    return (
+      <div className="w-full max-w-md mx-auto my-4">
+        <div className="w-full bg-white rounded-lg shadow-md border border-gray-100 overflow-hidden flex flex-col p-6">
+          <Skeleton className="h-8 w-3/4 mx-auto mb-4" />
+          <Skeleton className="h-4 w-2/3 mx-auto mb-8" />
+
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-12 w-full" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return isTermsOpen ? (
     <TermsAndConditions
@@ -167,6 +201,12 @@ export default function Register() {
           <p className="text-center text-gray-600 mt-2 mb-6">
             Choose your account type to get started
           </p>
+
+          {error && (
+            <div className="mb-6">
+              <ErrorMessage message={error} />
+            </div>
+          )}
 
           <Tabs defaultValue="buyer" className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-0">
@@ -252,10 +292,20 @@ export default function Register() {
 
                   <Button
                     type="submit"
-                    className="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-3 px-4 rounded-md mt-4"
+                    className="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-3 px-4 rounded-md mt-4 flex items-center justify-center gap-2"
                     disabled={isLoading}
                   >
-                    {isLoading ? "Creating account..." : "Create Account"}
+                    {isLoading ? (
+                      <>
+                        <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                        Creating account...
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus className="h-4 w-4" />
+                        Create Account
+                      </>
+                    )}
                   </Button>
                 </form>
               </TabsContent>
@@ -382,18 +432,31 @@ export default function Register() {
                       className="text-sm leading-none text-gray-600"
                     >
                       I agree to the{" "}
-                      <a href="#" className="text-orange-500 hover:underline">
+                      <Link
+                        to="/terms"
+                        className="text-orange-500 hover:underline"
+                      >
                         terms and conditions
-                      </a>
+                      </Link>
                     </label>
                   </div>
 
                   <Button
                     type="submit"
-                    className="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-3 px-4 rounded-md mt-4"
+                    className="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-3 px-4 rounded-md mt-4 flex items-center justify-center gap-2"
                     disabled={isLoading}
                   >
-                    {isLoading ? "Creating account..." : "Register as Seller"}
+                    {isLoading ? (
+                      <>
+                        <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                        Creating account...
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus className="h-4 w-4" />
+                        Register as Seller
+                      </>
+                    )}
                   </Button>
                 </form>
               </TabsContent>

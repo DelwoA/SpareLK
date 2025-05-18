@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import {
   Facebook,
   Twitter,
@@ -9,8 +10,104 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import Logo from "./Logo";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ErrorMessage } from "@/components/ui/error-message";
 
 export default function Footer() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Simulate a loading state for site config/data if needed
+  useEffect(() => {
+    // This could be replaced with real data fetching logic if footer data comes from an API
+    const loadFooterData = async () => {
+      setLoading(true);
+      try {
+        // Simulate API call for footer configuration
+        await new Promise((resolve) => setTimeout(resolve, 0));
+        setLoading(false);
+      } catch (err) {
+        console.error("Error loading footer data:", err);
+        setError("Failed to load footer information");
+        setLoading(false);
+      }
+    };
+
+    loadFooterData();
+  }, []);
+
+  if (loading) {
+    return (
+      <footer className="bg-slate-900 text-slate-300 w-full">
+        <div className="container mx-auto px-4 py-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {/* Company Info Skeleton */}
+            <div>
+              <Skeleton className="h-10 w-32 mb-4" />
+              <Skeleton className="h-4 w-full mb-5" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-4/5" />
+                <Skeleton className="h-4 w-3/5" />
+                <Skeleton className="h-4 w-4/5" />
+              </div>
+            </div>
+
+            {/* Quick Links Skeleton */}
+            <div>
+              <Skeleton className="h-6 w-32 mb-4" />
+              <div className="space-y-2">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <Skeleton key={i} className="h-4 w-24" />
+                ))}
+              </div>
+            </div>
+
+            {/* Categories Skeleton */}
+            <div>
+              <Skeleton className="h-6 w-40 mb-4" />
+              <div className="space-y-2">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <Skeleton key={i} className="h-4 w-36" />
+                ))}
+              </div>
+            </div>
+
+            {/* Newsletter Skeleton */}
+            <div>
+              <Skeleton className="h-6 w-32 mb-4" />
+              <Skeleton className="h-4 w-full mb-4" />
+              <Skeleton className="h-10 w-full mb-6" />
+              <div className="flex space-x-4">
+                {[1, 2, 3, 4].map((i) => (
+                  <Skeleton key={i} className="h-5 w-5" />
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-8 pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4">
+            <Skeleton className="h-4 w-48" />
+            <div className="flex gap-4">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-4 w-24" />
+              ))}
+            </div>
+          </div>
+        </div>
+      </footer>
+    );
+  }
+
+  if (error) {
+    return (
+      <footer className="bg-slate-900 text-slate-300 w-full">
+        <div className="container mx-auto px-4 py-6">
+          <ErrorMessage message={error} />
+        </div>
+      </footer>
+    );
+  }
+
   return (
     <footer id="footer" className="bg-slate-900 text-slate-300 w-full">
       <div className="container mx-auto px-4 py-12">
@@ -167,22 +264,42 @@ export default function Footer() {
               </button>
             </div>
             <div className="mt-6 flex space-x-4">
-              <a href="#" className="text-slate-400 hover:text-orange-500">
+              <Link
+                to="https://facebook.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-slate-400 hover:text-orange-500"
+              >
                 <Facebook className="h-5 w-5" />
                 <span className="sr-only">Facebook</span>
-              </a>
-              <a href="#" className="text-slate-400 hover:text-orange-500">
+              </Link>
+              <Link
+                to="https://twitter.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-slate-400 hover:text-orange-500"
+              >
                 <Twitter className="h-5 w-5" />
                 <span className="sr-only">Twitter</span>
-              </a>
-              <a href="#" className="text-slate-400 hover:text-orange-500">
+              </Link>
+              <Link
+                to="https://instagram.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-slate-400 hover:text-orange-500"
+              >
                 <Instagram className="h-5 w-5" />
                 <span className="sr-only">Instagram</span>
-              </a>
-              <a href="#" className="text-slate-400 hover:text-orange-500">
+              </Link>
+              <Link
+                to="https://youtube.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-slate-400 hover:text-orange-500"
+              >
                 <Youtube className="h-5 w-5" />
                 <span className="sr-only">YouTube</span>
-              </a>
+              </Link>
             </div>
           </div>
         </div>

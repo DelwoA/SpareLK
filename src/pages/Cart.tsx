@@ -7,6 +7,9 @@ import { cartActions } from "../reducers/cartSlice";
 import { ShoppingBag, Info, Tag, Package, Plus, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
+import { CartItemSkeleton } from "@/components/skeletons";
+import { ErrorMessage } from "@/components/ui/error-message";
 
 function Cart() {
   const navigate = useNavigate();
@@ -18,6 +21,8 @@ function Cart() {
 
   const [total, setTotal] = useState(0);
   const [cartItems, setCartItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     getCartItems();
@@ -45,11 +50,14 @@ function Cart() {
       return false;
     } catch (err) {
       console.log("Failed to update cart:", err);
+      toast.error("Failed to update cart");
       return false;
     }
   };
 
   const getCartItems = () => {
+    setLoading(true);
+    setError(null);
     api
       .get("cart/" + user!._id)
       .then((result) => {
@@ -70,11 +78,24 @@ function Cart() {
                 return { cartItem, item: null };
               })
           )
-        ).then((itemsWithDetails) => {
-          setCartItems(itemsWithDetails.filter((item) => item.item?.isActive));
-        });
+        )
+          .then((itemsWithDetails) => {
+            setCartItems(
+              itemsWithDetails.filter((item) => item.item?.isActive)
+            );
+            setLoading(false);
+          })
+          .catch((err) => {
+            console.log("Error fetching item details:", err);
+            setError("Failed to load cart items");
+            setLoading(false);
+          });
       })
-      .catch((err) => console.log(err));
+      .catch((err) => {
+        console.log("Error fetching cart:", err);
+        setError("Failed to load your cart");
+        setLoading(false);
+      });
   };
 
   const updateQuantity = (
@@ -103,15 +124,32 @@ function Cart() {
   };
 
   const removeItem = (itemId: string) => {
-    api
-      .delete(`cart/${cart.cartId}/${itemId}`)
-      .then(() => {
-        dispatch(cartActions.removeFromCart(itemId));
-        setCartItems((prev) =>
-          prev.filter((item) => item.cartItem.itemId !== itemId)
-        );
-      })
-      .catch((err) => console.log(err));
+    const removingItem = cartItems.find(
+      (item) => item.cartItem.itemId === itemId
+    );
+
+    if (removingItem) {
+      const itemName = removingItem.item?.name || "Item";
+
+      try {
+        api
+          .delete(`cart/${cart.cartId}/${itemId}`)
+          .then(() => {
+            dispatch(cartActions.removeFromCart(itemId));
+            setCartItems((prev) =>
+              prev.filter((item) => item.cartItem.itemId !== itemId)
+            );
+            toast.success(`${itemName} removed from cart`);
+          })
+          .catch((err) => {
+            console.log(err);
+            toast.error(`Failed to remove ${itemName} from cart`);
+          });
+      } catch (err) {
+        console.log(err);
+        toast.error("Failed to remove item from cart");
+      }
+    }
   };
 
   const handleCheckout = () => {
@@ -119,10 +157,72 @@ function Cart() {
       if (res) {
         navigate(`/cart/place-order/${cart.cartId}`);
       } else {
-        alert("Failed to update cart. Please try again.");
+        toast.error("Failed to update cart. Please try again.");
       }
     });
   };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="bg-gray-50 min-h-svh w-full">
+        <div className="container py-12 mx-auto">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold flex items-center gap-2">
+              <ShoppingBag className="h-8 w-8 text-orange-500" />
+              Shopping Cart
+            </h1>
+            <p className="text-gray-500 mt-2">Loading your cart...</p>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-6">
+              {[1, 2, 3].map((i) => (
+                <CartItemSkeleton key={i} />
+              ))}
+            </div>
+            <div className="lg:col-span-1">
+              <div className="rounded-xl border bg-white shadow-sm p-6 space-y-4">
+                <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
+                <div className="space-y-2">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="flex justify-between py-2">
+                      <div className="w-1/3">
+                        <div className="h-4 bg-slate-200 rounded animate-pulse"></div>
+                      </div>
+                      <div className="w-1/4">
+                        <div className="h-4 bg-slate-200 rounded animate-pulse"></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="bg-gray-50 min-h-svh w-full pt-4">
+        <div className="container py-12 mx-auto">
+          <div className="max-w-md mx-auto">
+            <ErrorMessage message={error} />
+            <div className="mt-4 text-center">
+              <Button
+                onClick={() => getCartItems()}
+                className="bg-orange-500 hover:bg-orange-600 text-white mt-4"
+              >
+                Try Again
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (items.length === 0 || cartItems.length === 0) {
     return (

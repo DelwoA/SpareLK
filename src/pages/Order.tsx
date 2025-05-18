@@ -17,6 +17,7 @@ import {
   CheckCircle,
   AlertTriangle,
   ShoppingBag,
+  RefreshCcw,
 } from "lucide-react";
 import { userActions } from "../reducers/userSlice";
 import { toast } from "sonner";
@@ -28,6 +29,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ErrorMessage } from "@/components/ui/error-message";
+import { OrderSkeleton } from "@/components/skeletons";
 
 function PlaceOrder() {
   const navigate = useNavigate();
@@ -41,6 +45,8 @@ function PlaceOrder() {
   const [total, setTotal] = useState(0);
   const [activeStep, setActiveStep] = useState("shipping");
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [shippingMethod, setShippingMethod] = useState<{
     type: "standard" | "express";
     fee: number;
@@ -109,21 +115,44 @@ function PlaceOrder() {
   }, []);
 
   function getOrderItems() {
-    if (location.pathname.split("/")[1] === "item") {
-      setOrderItems([{ itemId: params.itemId, qty: params.qty }]);
-      // Fetch and calculate total immediately
-      if (params.itemId) {
-        fetchItemDetails(params.itemId, parseInt(params.qty || "1"));
+    setLoading(true);
+    setError(null);
+
+    try {
+      if (location.pathname.split("/")[1] === "item") {
+        setOrderItems([{ itemId: params.itemId, qty: params.qty }]);
+        // Fetch and calculate total immediately
+        if (params.itemId) {
+          fetchItemDetails(params.itemId, parseInt(params.qty || "1"));
+        }
+      } else if (location.pathname.split("/")[1] === "cart") {
+        setOrderItems(cartItems);
+        // Calculate total from cart items immediately
+        if (cartItems && cartItems.length > 0) {
+          let initialTotal = 0;
+          Promise.all(
+            cartItems.map((item) =>
+              fetchItemDetails(item.itemId, item.qty, initialTotal)
+            )
+          )
+            .then(() => {
+              setLoading(false);
+            })
+            .catch((err) => {
+              console.error("Error fetching item details:", err);
+              setError("Failed to load order items");
+              setLoading(false);
+            });
+        } else {
+          setLoading(false);
+        }
+      } else {
+        setLoading(false);
       }
-    } else if (location.pathname.split("/")[1] === "cart") {
-      setOrderItems(cartItems);
-      // Calculate total from cart items immediately
-      if (cartItems && cartItems.length > 0) {
-        let initialTotal = 0;
-        cartItems.forEach((item) => {
-          fetchItemDetails(item.itemId, item.qty, initialTotal);
-        });
-      }
+    } catch (err) {
+      console.error("Error setting up order:", err);
+      setError("Failed to setup order");
+      setLoading(false);
     }
   }
 
@@ -132,15 +161,20 @@ function PlaceOrder() {
     quantity: number,
     runningTotal = 0
   ) {
-    api
+    return api
       .get("item/" + itemId)
       .then((result) => {
         const item = result.data.data;
         const price = item.price * ((100 - item.discount) / 100) * quantity;
         setOrderItemTotal(itemId, price);
         setTotal((prevTotal) => prevTotal + price);
+        setLoading(false);
       })
-      .catch((err) => console.log(err));
+      .catch((err) => {
+        console.log(err);
+        setError("Failed to load item details");
+        setLoading(false);
+      });
   }
 
   function setOrderItemTotal(itemId: string, price: number) {
@@ -342,6 +376,33 @@ function PlaceOrder() {
 
   const subtotal = total;
   const orderTotal = subtotal + shippingMethod.fee;
+
+  // If loading
+  if (loading) {
+    return <OrderSkeleton />;
+  }
+
+  // If error
+  if (error) {
+    return (
+      <div className="bg-gray-50 min-h-screen">
+        <div className="container py-12 mx-auto">
+          <div className="max-w-md mx-auto">
+            <ErrorMessage message={error} />
+            <div className="mt-4 flex justify-center">
+              <Button
+                onClick={() => getOrderItems()}
+                className="bg-orange-500 hover:bg-orange-600 text-white"
+              >
+                <RefreshCcw className="h-4 w-4 mr-2" />
+                Try Again
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!user) return <></>;
 
