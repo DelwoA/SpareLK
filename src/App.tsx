@@ -35,6 +35,8 @@ function App() {
   // TODO: Make sure that the things from the front-end and what it displays are in sync with the backend. For example, personal details, credit card numbers that are updated on the front-end are updated with the backedn as well.
   // TODO: Fix order numbers display the full ID from the database. Else the order numbers are wrong here.
   // TODO: Make sure finally the imports are also sorted in a more readable and clean way, without random imports here and there, making imports reading difficult.
+  // TODO: Fire up both the front-end and the back-end in the same project file in cursor, and check if there are any inconsistencies between the front-end UI and the back-end logic, if so, ask cursor to fix them.
+  // TODO: Remove all unnecessary console.log statements in the project.
 
   return (
     <div className="flex flex-col min-h-screen h-screen items-center">

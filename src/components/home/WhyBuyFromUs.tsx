@@ -17,7 +17,7 @@ export default function WhyBuyFromUs() {
     {
       icon: <Truck className="h-5 w-5" />,
       title: "Fast Delivery",
-      description: "Free shipping on orders over Rs.7,500",
+      description: "Free shipping on orders over Rs.30,000",
     },
     {
       icon: <BadgeCheck className="h-5 w-5" />,

@@ -141,7 +141,6 @@ export default function Home() {
         {/* why buy from us */}
         <WhyBuyFromUs />
 
-        {/* <FeaturesSection /> */}
         <PopularCategories />
       </Section>
     </main>
