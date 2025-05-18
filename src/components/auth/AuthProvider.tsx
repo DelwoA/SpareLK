@@ -7,7 +7,7 @@ import { userActions } from "../../reducers/userSlice";
 import { cartActions } from "../../reducers/cartSlice";
 import { api } from "../../api/api";
 import { FiLoader } from "react-icons/fi";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, Navigate } from "react-router-dom";
 import UserVerify from "./UserVerify";
 import Logo from "../Logo";
 
@@ -17,9 +17,22 @@ type Props = {
 
 export default function AuthProvider({ children }: Props) {
   const [loading, setLoading] = useState(true);
-  const [isLogin, setIsLogin] = useState(true);
   const { isUserAuthed } = useSelector((root: RootState) => root.user);
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    // Set background color when auth pages are shown
+    if (!isUserAuthed) {
+      document.body.style.backgroundColor = "rgb(243, 244, 246)"; // gray-100 equivalent
+    }
+
+    // Reset background color when component unmounts or user is authenticated
+    return () => {
+      if (!isUserAuthed) {
+        document.body.style.backgroundColor = "";
+      }
+    };
+  }, [isUserAuthed]);
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem("user") as string);
@@ -33,14 +46,12 @@ export default function AuthProvider({ children }: Props) {
             dispatch(
               cartActions.setData({ userId: user._id, cartId: cart._id })
             );
-            setIsLogin(true);
           }
           setTimeout(() => setLoading(false), 500);
         })
         .catch((error) => {
           console.error(error);
           localStorage.removeItem("user");
-          setIsLogin(true);
           location.reload();
         });
       return;
@@ -49,17 +60,13 @@ export default function AuthProvider({ children }: Props) {
     setTimeout(() => setLoading(false), 500);
   }, []);
 
-  const Auth = () => {
+  const AuthLayout = ({ children }: { children: React.ReactNode }) => {
     return (
-      <div className="min-h-screen w-screen flex flex-col gap-12 items-center justify-center bg-main bg-[url('/login_bg.png')] bg-cover bg-center">
-        <div className="bg-main rounded-md p-2">
-          <Logo variant="light" size="large" />
+      <div className="min-h-screen w-full flex flex-col items-center justify-center">
+        <div className="mb-6">
+          <Logo variant="dark" size="large" showText={true} />
         </div>
-        {isLogin ? (
-          <Login setIsLogin={setIsLogin} />
-        ) : (
-          <Register setIsLogin={setIsLogin} />
-        )}
+        {children}
       </div>
     );
   };
@@ -74,7 +81,23 @@ export default function AuthProvider({ children }: Props) {
     </div>
   ) : (
     <Routes>
-      <Route path="/" element={<Auth />} />
+      <Route path="/" element={<Navigate to="/login" replace />} />
+      <Route
+        path="/login"
+        element={
+          <AuthLayout>
+            <Login />
+          </AuthLayout>
+        }
+      />
+      <Route
+        path="/register"
+        element={
+          <AuthLayout>
+            <Register />
+          </AuthLayout>
+        }
+      />
       <Route path="/user-verify/:code" element={<UserVerify />} />
     </Routes>
   );
