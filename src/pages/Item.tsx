@@ -8,11 +8,11 @@ import { api } from "@/api/api";
 import { cartActions } from "@/reducers/cartSlice";
 import { EUserRole, TItem, TReview } from "@/types";
 import { Button } from "@/components/ui/button";
-import { ImageGallery } from "@/components/common/ImageGallery";
-import { ProductInfo } from "@/components/common/ProductInfo";
-import { ProductPricing } from "@/components/common/ProductPricing";
-import { ProductDescription } from "@/components/common/ProductDescription";
-import { ProductRatings } from "@/components/common/ProductRatings";
+import { ImageGallery } from "@/components/product/ImageGallery";
+import { ProductInfo } from "@/components/product/ProductInfo";
+import { ProductPricing } from "@/components/product/ProductPricing";
+import { ProductDescription } from "@/components/product/ProductDescription";
+import { ProductRatings } from "@/components/product/ProductRatings";
 
 function Item() {
   const params = useParams();
