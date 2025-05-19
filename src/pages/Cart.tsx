@@ -1,3 +1,12 @@
+/**
+ * Cart Page Component
+ *
+ * Displays and manages the user's shopping cart, including item listing,
+ * quantity adjustments, price calculations, and checkout functionality.
+ * Handles loading states and error conditions gracefully.
+ *
+ * @module Pages/Cart
+ */
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -11,23 +20,57 @@ import { toast } from "sonner";
 import { CartItemSkeleton } from "@/components/skeletons";
 import { ErrorMessage } from "@/components/ui/error-message";
 
+/**
+ * Interface for cart item with detailed product information
+ * @interface CartItemWithDetails
+ */
+interface CartItemWithDetails {
+  cartItem: {
+    itemId: string;
+    qty: number;
+  };
+  item: {
+    _id: string;
+    name: string;
+    price: number;
+    discount: number;
+    image: string;
+    stock: number;
+    isActive: boolean;
+  } | null;
+}
+
+/**
+ * Cart page component
+ * Manages shopping cart display and interactions
+ *
+ * @returns {JSX.Element} Cart page component
+ */
 function Cart() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
+  // Get user and cart data from Redux store
   const { user } = useSelector((state: RootState) => state.user);
   const items = useSelector((state: RootState) => state.cart.cartItems);
   const cart = useSelector((state: RootState) => state.cart);
 
+  // State for cart data and UI
   const [total, setTotal] = useState(0);
-  const [cartItems, setCartItems] = useState<any[]>([]);
+  const [cartItems, setCartItems] = useState<CartItemWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  /**
+   * Initial load of cart items on component mount
+   */
   useEffect(() => {
     getCartItems();
   }, []);
 
+  /**
+   * Calculate total price whenever cart items change
+   */
   useEffect(() => {
     // Calculate total when items change
     let newTotal = 0;
@@ -41,6 +84,10 @@ function Cart() {
     setTotal(newTotal);
   }, [cartItems]);
 
+  /**
+   * Updates cart data on the server
+   * @returns {Promise<boolean>} Success status of update operation
+   */
   const updateCart = async () => {
     try {
       const res = await api.put(`cart/items/${cart.cartId}`, items);
@@ -55,6 +102,9 @@ function Cart() {
     }
   };
 
+  /**
+   * Fetches cart items and their details from the API
+   */
   const getCartItems = () => {
     setLoading(true);
     setError(null);
@@ -98,6 +148,12 @@ function Cart() {
       });
   };
 
+  /**
+   * Updates item quantity in the cart
+   * @param {string} itemId - ID of the item to update
+   * @param {number} newQty - New quantity value
+   * @param {number} currentQty - Current quantity value
+   */
   const updateQuantity = (
     itemId: string,
     newQty: number,
@@ -123,6 +179,10 @@ function Cart() {
     );
   };
 
+  /**
+   * Removes an item from the cart
+   * @param {string} itemId - ID of the item to remove
+   */
   const removeItem = (itemId: string) => {
     const removingItem = cartItems.find(
       (item) => item.cartItem.itemId === itemId
@@ -152,6 +212,10 @@ function Cart() {
     }
   };
 
+  /**
+   * Handles checkout process
+   * Updates cart on server before navigating to order placement
+   */
   const handleCheckout = () => {
     updateCart().then((res) => {
       if (res) {
@@ -162,7 +226,9 @@ function Cart() {
     });
   };
 
-  // Loading state
+  /**
+   * Render loading state
+   */
   if (loading) {
     return (
       <div className="bg-gray-50 min-h-svh w-full">
@@ -203,22 +269,26 @@ function Cart() {
     );
   }
 
-  // Error state
+  /**
+   * Render error state
+   */
   if (error) {
     return (
-      <div className="bg-gray-50 min-h-svh w-full pt-4">
+      <div className="bg-gray-50 min-h-svh w-full">
         <div className="container py-12 mx-auto">
-          <div className="max-w-md mx-auto">
-            <ErrorMessage message={error} />
-            <div className="mt-4 text-center">
-              <Button
-                onClick={() => getCartItems()}
-                className="bg-orange-500 hover:bg-orange-600 text-white mt-4"
-              >
-                Try Again
-              </Button>
-            </div>
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold flex items-center gap-2">
+              <ShoppingBag className="h-8 w-8 text-orange-500" />
+              Shopping Cart
+            </h1>
           </div>
+          <ErrorMessage message={error} />
+          <Button
+            onClick={() => getCartItems()}
+            className="mt-4 bg-orange-500 hover:bg-orange-600"
+          >
+            Try Again
+          </Button>
         </div>
       </div>
     );

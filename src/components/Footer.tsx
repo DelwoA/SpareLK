@@ -1,3 +1,12 @@
+/**
+ * Footer Component
+ *
+ * Displays the site footer containing company information, navigation links,
+ * categories, newsletter subscription, and social media links.
+ * Implements responsive design and loading states.
+ *
+ * @module Components/Footer
+ */
 import { useState, useEffect } from "react";
 import {
   Facebook,
@@ -13,11 +22,21 @@ import Logo from "./Logo";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorMessage } from "@/components/ui/error-message";
 
+/**
+ * Footer component
+ * Site-wide footer with company information, navigation, and contact details
+ *
+ * @returns {JSX.Element} Footer component with appropriate loading states
+ */
 export default function Footer() {
+  // State for managing loading and error conditions
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Simulate a loading state for site config/data if needed
+  /**
+   * Load footer configuration data on component mount
+   * Currently simulated, but could fetch from an API in the future
+   */
   useEffect(() => {
     // This could be replaced with real data fetching logic if footer data comes from an API
     const loadFooterData = async () => {
@@ -36,6 +55,9 @@ export default function Footer() {
     loadFooterData();
   }, []);
 
+  /**
+   * Render loading skeleton when data is being fetched
+   */
   if (loading) {
     return (
       <footer className="bg-slate-900 text-slate-300 w-full">
@@ -98,6 +120,9 @@ export default function Footer() {
     );
   }
 
+  /**
+   * Render error message if data loading failed
+   */
   if (error) {
     return (
       <footer className="bg-slate-900 text-slate-300 w-full">
@@ -108,11 +133,12 @@ export default function Footer() {
     );
   }
 
+  // Main footer content
   return (
     <footer id="footer" className="bg-slate-900 text-slate-300 w-full">
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {/* Company Info */}
+          {/* Company Info Section */}
           <div>
             <div className="mb-4">
               <Logo variant="light" size="medium" />
@@ -136,7 +162,7 @@ export default function Footer() {
               </div>
             </div>
           </div>
-          {/* Quick Links */}
+          {/* Quick Links Section */}
           <div>
             <h3 className="text-white font-bold text-base mb-4">Quick Links</h3>
             <ul className="space-y-2 text-sm">
@@ -190,7 +216,7 @@ export default function Footer() {
               </li>
             </ul>
           </div>
-          {/* Categories */}
+          {/* Categories Section */}
           <div>
             <h3 className="text-white font-bold text-base mb-4">
               Top Categories

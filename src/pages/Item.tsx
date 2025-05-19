@@ -1,3 +1,12 @@
+/**
+ * Item Page Component
+ *
+ * Displays detailed information about a product item including images,
+ * description, pricing, and customer reviews. Handles item purchase
+ * and add-to-cart functionality.
+ *
+ * @module Pages/Item
+ */
 import { useState, useEffect } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -14,6 +23,12 @@ import { ProductPricing } from "@/components/product/ProductPricing";
 import { ProductDescription } from "@/components/product/ProductDescription";
 import { ProductRatings } from "@/components/product/ProductRatings";
 
+/**
+ * Item page component
+ * Displays detailed product information and purchase options
+ *
+ * @returns {JSX.Element} Item page component
+ */
 function Item() {
   const params = useParams();
   const navigate = useNavigate();
@@ -21,11 +36,16 @@ function Item() {
   const itemId = params.itemId;
   const { cartId } = useSelector((state: RootState) => state.cart);
   const { user } = useSelector((state: RootState) => state.user);
+
+  // State for item data and UI
   const [item, setItem] = useState<TItem | null>(null);
   const [itemQty, setItemQty] = useState(1);
   const [loading, setLoading] = useState(true);
   const [reviews, setReviews] = useState<TReview[]>([]);
 
+  /**
+   * Fetches item details from API
+   */
   function getItemRequest() {
     setLoading(true);
     api
@@ -40,6 +60,9 @@ function Item() {
       });
   }
 
+  /**
+   * Adds current item to cart with selected quantity
+   */
   function addItemCart() {
     api
       .put(`cart/add/${cartId}`, { itemId: itemId, qty: itemQty })
@@ -58,6 +81,10 @@ function Item() {
       });
   }
 
+  /**
+   * Fetches reviews for the current item
+   * @param {string | undefined} id - Item ID
+   */
   function getReviews(id: string | undefined) {
     if (!id) return;
 
@@ -69,20 +96,31 @@ function Item() {
       .catch((err) => console.error(err));
   }
 
+  /**
+   * Load item data and reviews when component mounts or item ID changes
+   */
   useEffect(() => {
     getItemRequest();
     getReviews(itemId);
     window.scrollTo({ top: 0 });
   }, [params.itemId]);
 
+  /**
+   * Navigates to order placement page for direct purchase
+   */
   const handleBuyNow = () => {
     navigate(`/item/place-order/${item?._id}/${itemQty}`);
   };
 
+  /**
+   * Updates selected quantity when user changes it
+   * @param {number} quantity - New quantity value
+   */
   const handleQuantityChange = (quantity: number) => {
     setItemQty(quantity);
   };
 
+  // Loading state display
   if (loading) {
     return (
       <div className="flex items-center justify-center flex-grow min-h-screen w-full">
@@ -91,6 +129,7 @@ function Item() {
     );
   }
 
+  // Error state when item not found
   if (!item) {
     return (
       <div className="flex items-center justify-center flex-grow min-h-screen w-full">
@@ -99,6 +138,7 @@ function Item() {
     );
   }
 
+  // Calculate price after discount
   const discountedPrice = Math.round(
     item.price * ((100 - item.discount) / 100)
   );
@@ -106,6 +146,7 @@ function Item() {
 
   return (
     <main className="container max-w-7xl mx-auto px-4 py-8">
+      {/* Breadcrumb Navigation */}
       <nav className="flex items-center text-sm mb-6">
         <Link to="/" className="text-slate-500 hover:text-orange-500">
           Home
@@ -125,6 +166,7 @@ function Item() {
         <span className="text-slate-900 font-medium truncate">{item.name}</span>
       </nav>
 
+      {/* Product Layout - Image and Details */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-16">
         <div>
           <ImageGallery
@@ -135,6 +177,7 @@ function Item() {
         </div>
 
         <div className="space-y-8">
+          {/* Product Information */}
           <ProductInfo
             name={item.name}
             brand={item.brand}
@@ -146,6 +189,7 @@ function Item() {
             storeName={item.store?.name}
           />
 
+          {/* Product Pricing and Quantity Selection */}
           <ProductPricing
             price={discountedPrice}
             originalPrice={item.price}
@@ -157,6 +201,7 @@ function Item() {
             onQuantityChange={handleQuantityChange}
           />
 
+          {/* Action Buttons - Only show for buyers */}
           {user?.role !== EUserRole.SELLER && (
             <div className="flex flex-col sm:flex-row gap-4 pt-6">
               <Button
@@ -177,10 +222,12 @@ function Item() {
         </div>
       </div>
 
+      {/* Product Description Section */}
       <div className="mb-12">
         <ProductDescription description={item.description} />
       </div>
 
+      {/* Reviews Section */}
       <div className="mb-16">
         <ProductRatings
           rating={item.rating}

@@ -1,10 +1,45 @@
-import React, { useState, useEffect } from "react";
+/**
+ * Admin Page Component
+ *
+ * Provides an administrative interface for managing users and their verification status.
+ * Currently displays a list of unverified users and allows admin to approve them.
+ *
+ * @module Pages/Admin
+ */
+import { useState, useEffect } from "react";
 import Button from "../components/Button";
-import { TUser } from "../types";
 
+/**
+ * Interface for user data in the admin panel
+ * @interface AdminUser
+ */
+interface AdminUser {
+  /** Unique identifier for the user */
+  _id: string;
+  /** User's first name */
+  firstName: string;
+  /** User's email address */
+  email: string;
+  /** Whether the user has been verified */
+  verified: boolean;
+  /** Whether the user is verified after admin approval */
+  isVerified?: boolean;
+}
+
+/**
+ * Admin page component
+ * Administrative interface for user management and verification
+ *
+ * @returns {JSX.Element} Admin panel component
+ */
 function Admin() {
-  const [users, setUsers] = useState<any[]>([]);
+  // State for user data
+  const [users, setUsers] = useState<AdminUser[]>([]);
 
+  /**
+   * Load user data on component mount
+   * Currently uses mock data, should be replaced with actual API call
+   */
   useEffect(() => {
     // Fetch unverified users (Replace with actual API call)
     setUsers([
@@ -23,6 +58,12 @@ function Admin() {
     ]);
   }, []);
 
+  /**
+   * Handles user verification
+   * Updates user status when admin approves verification
+   *
+   * @param {string} userId - ID of the user to verify
+   */
   const handleVerify = (userId: string) => {
     // Update user verification status (Replace with actual API call)
     setUsers(
@@ -37,6 +78,8 @@ function Admin() {
       <h1 className="text-2xl font-semibold mb-4 text-center">
         Admin Panel - User Verification
       </h1>
+
+      {/* User Verification Table */}
       <table className="w-full border-collapse border border-gray-300">
         <thead>
           <tr className="bg-gray-200">
@@ -57,7 +100,7 @@ function Admin() {
               <td className="border p-2">
                 {!user.verified && (
                   <Button
-                    onClick={() => handleVerify(user._id!)}
+                    onClick={() => handleVerify(user._id)}
                     className="px-4 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
                   >
                     Verify

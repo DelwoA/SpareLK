@@ -1,17 +1,40 @@
+/**
+ * Logo Component
+ *
+ * Displays the SpareLK brand logo with configurable size, variant, and text visibility.
+ * Used throughout the application for consistent brand presentation.
+ *
+ * @module Components/Logo
+ */
 import { Link } from "react-router-dom";
 
+/**
+ * Props interface for the Logo component
+ *
+ * @interface LogoProps
+ */
 interface LogoProps {
+  /** Color variant of the logo - 'light' for white text, 'dark' for slate text */
   variant?: "light" | "dark";
+  /** Size variant affecting the dimensions of the logo and text */
   size?: "small" | "medium" | "large";
+  /** Whether to display the brand name text alongside the logo icon */
   showText?: boolean;
 }
 
+/**
+ * Logo component
+ * Renders the SpareLK logo with configurable appearance options
+ *
+ * @param {LogoProps} props - Component props
+ * @returns {JSX.Element} Logo component with appropriate styling
+ */
 export default function Logo({
   variant = "light",
   size = "medium",
   showText = true,
 }: LogoProps) {
-  // Size mappings
+  // Size mappings for responsive design
   const sizeClasses = {
     small: {
       container: "gap-1.5",
@@ -33,7 +56,7 @@ export default function Logo({
     },
   };
 
-  // Color variants
+  // Color variants based on light/dark prop
   const textColor = variant === "light" ? "text-white" : "text-slate-800";
 
   return (
@@ -41,9 +64,11 @@ export default function Logo({
       to="/"
       className={`flex items-center ${sizeClasses[size].container} hover:scale-105 transition-transform duration-200`}
     >
+      {/* Logo circle */}
       <div
         className={`flex items-center justify-center rounded-full bg-orange-500 ${sizeClasses[size].circle}`}
       >
+        {/* Plus icon inside circle */}
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
@@ -59,6 +84,8 @@ export default function Logo({
           <path d="M12 8v8" />
         </svg>
       </div>
+
+      {/* Brand name text - conditionally rendered */}
       {showText && (
         <span className={`font-bold ${textColor} ${sizeClasses[size].text}`}>
           SpareLK

@@ -1,3 +1,11 @@
+/**
+ * Shop Page Component
+ *
+ * Provides a comprehensive shopping interface with filtering, sorting, and search functionality.
+ * Includes responsive design for both desktop and mobile views with different product display modes.
+ *
+ * @module Pages/Shop
+ */
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   SlidersHorizontal,
@@ -16,19 +24,31 @@ import { MobileFilters } from "@/components/shop/MobileFilters";
 import { FilterSidebar } from "@/components/shop/FilterSidebar";
 import { ProductGrid } from "@/components/shop/ProductGrid";
 
-// Shop page with revamped UI
+/**
+ * Shop page component
+ * Provides product browsing with extensive filtering options
+ *
+ * @returns {JSX.Element} Shop page component
+ */
 export default function Shop() {
   const location = useLocation();
   const navigate = useNavigate();
   const searchParams = new URLSearchParams(location.search);
   const keywordFromUrl = searchParams.get("keyword") || "";
 
+  // Check if categories or brands were passed through navigation state
   const brandFromState = location.state?.brand || null;
   const catFromState = location.state?.cat || null;
 
-  // State
+  /**
+   * State variables for filtering, sorting, and display options
+   */
+  // State for loading and product data
   const [loading, setLoading] = useState(true);
   const [filteredItems, setFilteredItems] = useState([]);
+  const [totalItems, setTotalItems] = useState(0);
+
+  // State for filter criteria
   const [price, setPrice] = useState(300000);
   const [categories, setCategories] = useState<string[]>(
     [catFromState].filter(Boolean)
@@ -36,16 +56,22 @@ export default function Shop() {
   const [brands, setBrands] = useState<string[]>(
     [brandFromState].filter(Boolean)
   );
-  const [sort, setSort] = useState<"new" | "low" | "high" | "popular">("new");
   const [condition, setCondition] = useState<ECondition>(ECondition.ALL);
   const [keyword, setKeyword] = useState(keywordFromUrl);
+
+  // State for UI controls
+  const [sort, setSort] = useState<"new" | "low" | "high" | "popular">("new");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [isMobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [sortMenuOpen, setSortMenuOpen] = useState(false);
-  const [totalItems, setTotalItems] = useState(0);
+
+  // Ref for handling clicks outside dropdown
   const sortDropdownRef = useRef<HTMLDivElement>(null);
 
-  // Get active filters for UI display
+  /**
+   * Collects all active filters for display
+   * @returns {string[]} Array of active filter strings
+   */
   const getActiveFilters = () => {
     const filters: string[] = [];
     if (condition !== ECondition.ALL) filters.push(condition);
@@ -57,7 +83,10 @@ export default function Shop() {
 
   const activeFilters = getActiveFilters();
 
-  // Toggle filter (used for removing filter tags)
+  /**
+   * Toggles a filter on/off when user clicks filter tag
+   * @param {string} filter - Filter to toggle
+   */
   const toggleFilter = (filter: string) => {
     if (filter === condition) {
       setCondition(ECondition.ALL);
@@ -70,9 +99,14 @@ export default function Shop() {
     }
   };
 
-  // Helper functions
+  /**
+   * Helper function to complete loading with small delay for UI smoothness
+   */
   const loadingDone = () => setTimeout(() => setLoading(false), 500);
 
+  /**
+   * Resets all filter criteria to default values
+   */
   const clearFilters = () => {
     setCategories([]);
     setBrands([]);
@@ -81,7 +115,9 @@ export default function Shop() {
     setKeyword("");
   };
 
-  // Get filtered items based on all filters - retrieve all items without pagination
+  /**
+   * Fetches items from API based on current filter criteria
+   */
   const getFilteredItems = async () => {
     setLoading(true);
     try {
@@ -103,23 +139,35 @@ export default function Shop() {
     }
   };
 
-  // Apply all current filters
+  /**
+   * Applies current filters and fetches updated results
+   */
   const applyFilters = () => {
     getFilteredItems();
   };
 
-  // Handle price change
+  /**
+   * Updates price filter and triggers re-filtering
+   * @param {number} value - New price value
+   */
   const handlePriceChange = (value: number) => {
     setPrice(value);
   };
 
-  // Handle search submit
+  /**
+   * Handles search form submission
+   * @param {React.FormEvent} e - Form event
+   */
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     getFilteredItems();
   };
 
-  // Category & brand handlers
+  /**
+   * Updates category filters when checkboxes change
+   * @param {boolean} checked - Whether checkbox is checked
+   * @param {string} cat - Category name
+   */
   const handleCategoryChange = (checked: boolean, cat: string) => {
     const newCategories = [...categories];
     if (checked) {
@@ -130,6 +178,11 @@ export default function Shop() {
     setCategories(newCategories);
   };
 
+  /**
+   * Updates brand filters when checkboxes change
+   * @param {boolean} checked - Whether checkbox is checked
+   * @param {string} brand - Brand name
+   */
   const handleBrandChange = (checked: boolean, brand: string) => {
     const newBrands = [...brands];
     if (checked) {
@@ -140,26 +193,37 @@ export default function Shop() {
     setBrands(newBrands);
   };
 
-  // Handle sort change
+  /**
+   * Updates sort order and re-filters products
+   * @param {"new" | "low" | "high" | "popular"} value - Sort option
+   */
   const handleSortChange = (value: "new" | "low" | "high" | "popular") => {
     setSort(value);
     getFilteredItems();
   };
 
-  // Run search when filter criteria changes but NOT when keyword changes
+  /**
+   * Rerun search when filter criteria changes
+   * Excludes keyword changes which are handled separately
+   */
   useEffect(() => {
     if (!location.search.includes("keyword=")) {
       getFilteredItems();
     }
   }, [condition, sort, categories, brands]);
 
-  // Initial load
+  /**
+   * Initial data load on component mount
+   */
   useEffect(() => {
     window.scrollTo({ top: 0 });
     getFilteredItems();
   }, []);
 
-  // Listen for URL search parameter changes
+  /**
+   * Respond to URL search parameter changes
+   * Updates keyword and re-filters products
+   */
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const newKeyword = searchParams.get("keyword") || "";
@@ -190,7 +254,9 @@ export default function Shop() {
     fetchItems();
   }, [location.search]);
 
-  // Handle click outside for sort dropdown
+  /**
+   * Handle click outside for sort dropdown closure
+   */
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -205,7 +271,7 @@ export default function Shop() {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [sortMenuOpen]);
+  }, []);
 
   return (
     <div className="w-full min-h-screen bg-gray-50">
