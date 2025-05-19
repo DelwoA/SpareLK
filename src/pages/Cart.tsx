@@ -37,6 +37,7 @@ interface CartItemWithDetails {
     image: string;
     stock: number;
     isActive: boolean;
+    category?: string;
   } | null;
 }
 
@@ -131,7 +132,7 @@ function Cart() {
         )
           .then((itemsWithDetails) => {
             setCartItems(
-              itemsWithDetails.filter((item) => item.item?.isActive)
+              itemsWithDetails.filter((item) => item.item && item.item.isActive)
             );
             setLoading(false);
           })
@@ -294,7 +295,12 @@ function Cart() {
     );
   }
 
-  if (items.length === 0 || cartItems.length === 0) {
+  // Check if cart is empty
+  if (
+    items.length === 0 ||
+    cartItems.length === 0 ||
+    !cartItems.some((item) => item.item != null)
+  ) {
     return (
       <div className="bg-gray-50 min-h-svh w-full pt-4">
         <div className="container py-12 mx-auto flex flex-col items-center justify-center">
@@ -333,93 +339,100 @@ function Cart() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Cart Items */}
           <div className="lg:col-span-2 space-y-6">
-            {cartItems.map((item) => (
-              <div
-                key={item.cartItem._id}
-                className="rounded-xl border bg-white shadow-sm overflow-hidden"
-              >
-                <div className="flex flex-col sm:flex-row">
-                  <div className="w-full sm:w-32 h-32 p-4 flex items-center justify-center bg-slate-50">
-                    <img
-                      src={`http://localhost:3000/images/${item.item.image}`}
-                      alt={item.item.name}
-                      className="max-h-full max-w-full object-contain"
-                    />
-                  </div>
-                  <div className="flex-1 p-4 sm:p-6 flex flex-col justify-between">
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <h3 className="font-medium text-lg">
-                          {item.item.name}
-                        </h3>
-                        <span className="font-semibold">
-                          Rs.{" "}
-                          {parseFloat(
-                            item.item.price *
-                              ((100 - item.item.discount) / 100) +
-                              ""
-                          ).toLocaleString(undefined, {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          })}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-500 flex-wrap">
-                        <Tag className="h-4 w-4" />
-                        <span>{item.item.category}</span>
-                        <span className="text-slate-300">|</span>
-                        <Package className="h-4 w-4" />
-                        <span>Only {item.item.stock} item(s) left</span>
-                      </div>
+            {cartItems
+              .filter((item) => item.item !== null)
+              .map((item) => (
+                <div
+                  key={item.cartItem.itemId}
+                  className="rounded-xl border bg-white shadow-sm overflow-hidden"
+                >
+                  <div className="flex flex-col sm:flex-row">
+                    <div className="w-full sm:w-32 h-32 p-4 flex items-center justify-center bg-slate-50">
+                      <img
+                        src={`http://localhost:3000/images/${
+                          item.item?.image || "placeholder.jpg"
+                        }`}
+                        alt={item.item?.name || "Product"}
+                        className="max-h-full max-w-full object-contain"
+                      />
                     </div>
-                    <div className="flex justify-between items-center mt-4">
-                      <div className="flex items-center">
+                    <div className="flex-1 p-4 sm:p-6 flex flex-col justify-between">
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <h3 className="font-medium text-lg">
+                            {item.item?.name || "Product"}
+                          </h3>
+                          <span className="font-semibold">
+                            Rs.{" "}
+                            {parseFloat(
+                              (item.item?.price || 0) *
+                                ((100 - (item.item?.discount || 0)) / 100) +
+                                ""
+                            ).toLocaleString(undefined, {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            })}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-gray-500 flex-wrap">
+                          <Tag className="h-4 w-4" />
+                          <span>{item.item?.category || "Uncategorized"}</span>
+                          <span className="text-slate-300">|</span>
+                          <Package className="h-4 w-4" />
+                          <span>Only {item.item?.stock || 0} item(s) left</span>
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center mt-4">
+                        <div className="flex items-center">
+                          <button
+                            className="w-8 h-8 flex items-center justify-center rounded-l border border-r-0 bg-slate-50 text-slate-500 hover:bg-slate-100"
+                            onClick={() => {
+                              if (item.cartItem.qty <= 1) return;
+                              updateQuantity(
+                                item.cartItem.itemId,
+                                item.cartItem.qty - 1,
+                                item.cartItem.qty
+                              );
+                            }}
+                            disabled={item.cartItem.qty <= 1}
+                          >
+                            <Minus className="h-4 w-4" />
+                          </button>
+                          <input
+                            type="text"
+                            value={item.cartItem.qty}
+                            className="w-10 h-8 text-center border-y focus:outline-none"
+                            readOnly
+                          />
+                          <button
+                            className="w-8 h-8 flex items-center justify-center rounded-r border border-l-0 bg-slate-50 text-slate-500 hover:bg-slate-100"
+                            onClick={() => {
+                              if (item.cartItem.qty >= (item.item?.stock || 0))
+                                return;
+                              updateQuantity(
+                                item.cartItem.itemId,
+                                item.cartItem.qty + 1,
+                                item.cartItem.qty
+                              );
+                            }}
+                            disabled={
+                              item.cartItem.qty >= (item.item?.stock || 0)
+                            }
+                          >
+                            <Plus className="h-4 w-4" />
+                          </button>
+                        </div>
                         <button
-                          className="w-8 h-8 flex items-center justify-center rounded-l border border-r-0 bg-slate-50 text-slate-500 hover:bg-slate-100"
-                          onClick={() => {
-                            if (item.cartItem.qty <= 1) return;
-                            updateQuantity(
-                              item.cartItem.itemId,
-                              item.cartItem.qty - 1,
-                              item.cartItem.qty
-                            );
-                          }}
-                          disabled={item.cartItem.qty <= 1}
+                          className="text-sm text-red-500 hover:text-red-600 font-medium"
+                          onClick={() => removeItem(item.cartItem.itemId)}
                         >
-                          <Minus className="h-4 w-4" />
-                        </button>
-                        <input
-                          type="text"
-                          value={item.cartItem.qty}
-                          className="w-10 h-8 text-center border-y focus:outline-none"
-                          readOnly
-                        />
-                        <button
-                          className="w-8 h-8 flex items-center justify-center rounded-r border border-l-0 bg-slate-50 text-slate-500 hover:bg-slate-100"
-                          onClick={() => {
-                            if (item.cartItem.qty >= item.item.stock) return;
-                            updateQuantity(
-                              item.cartItem.itemId,
-                              item.cartItem.qty + 1,
-                              item.cartItem.qty
-                            );
-                          }}
-                          disabled={item.cartItem.qty >= item.item.stock}
-                        >
-                          <Plus className="h-4 w-4" />
+                          Remove
                         </button>
                       </div>
-                      <button
-                        className="text-sm text-red-500 hover:text-red-600 font-medium"
-                        onClick={() => removeItem(item.cartItem.itemId)}
-                      >
-                        Remove
-                      </button>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
             <div className="pt-4">
               <Button
                 variant="outline"
