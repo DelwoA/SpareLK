@@ -16,6 +16,7 @@ import AddItemForm from "./components/Profile/AddItemForm";
 import Store from "./pages/Store";
 import Shop from "./pages/Shop";
 import AboutUs from "./pages/AboutUs";
+import WarningSigns from "./pages/WarningSigns";
 import ChatBot from "./components/ChatBot";
 import { EUserRole } from "./types";
 import Admin from "./pages/Admin";
@@ -44,6 +45,7 @@ function App() {
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/shop" element={<Shop />} />
                 <Route path="/aboutus" element={<AboutUs />} />
+                <Route path="/warning-signs" element={<WarningSigns />} />
                 <Route path="/item/:itemId" element={<Item />} />
                 <Route
                   path="/cart/place-order/:cartId"

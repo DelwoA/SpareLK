@@ -12,6 +12,7 @@ import {
   faLeftLong,
   faPlus,
   faStore,
+  faTriangleExclamation,
   faUser,
 } from "@fortawesome/free-solid-svg-icons";
 import { useState, useEffect } from "react";
@@ -38,7 +39,7 @@ import { Button } from "@/components/ui/button";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import LogoutDialog from "./LogoutDialog";
 import Logo from "./Logo";
-import { X } from "lucide-react";
+import { X, AlertTriangle } from "lucide-react";
 
 /**
  * Main Navbar component
@@ -351,6 +352,13 @@ const Navbar = () => {
                   >
                     {user.store ? "Store Profile" : "Become a Seller"}
                   </Li>
+                  <Li
+                    to="/warning-signs"
+                    icon={faTriangleExclamation}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Vehicle Warning Signs
+                  </Li>
                 </>
               ) : null}
 
@@ -513,6 +521,16 @@ const Navbar = () => {
             )}
             <li>
               <Link
+                to="/warning-signs"
+                className="flex items-center gap-3 p-2 rounded-md hover:bg-slate-100"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <AlertTriangle className="text-slate-600 h-5 w-5" />
+                <span className="font-medium">Warning Signs</span>
+              </Link>
+            </li>
+            <li>
+              <Link
                 to="/profile"
                 className="flex items-center gap-3 p-2 rounded-md hover:bg-slate-100"
                 onClick={() => setIsMobileMenuOpen(false)}
@@ -573,6 +591,15 @@ const Navbar = () => {
             </Link>
           </>
         )}
+
+        <Link
+          to="/warning-signs"
+          className="flex flex-col items-center text-xs text-slate-600"
+          onClick={() => setIsMobileMenuOpen(false)}
+        >
+          <AlertTriangle className="text-lg mb-0.5" />
+          <span>Warnings</span>
+        </Link>
 
         <Link
           to="/profile"
