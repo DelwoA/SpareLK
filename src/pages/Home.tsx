@@ -1,3 +1,11 @@
+/**
+ * Home Page Component
+ *
+ * Main landing page for the SpareLK e-commerce platform.
+ * Features slider, product categories, promotional cards, and various product listings.
+ *
+ * @module Pages/Home
+ */
 import { useEffect, useState } from "react";
 import { allCategories } from "../data/categories";
 import Slider from "../components/home/Slider";
@@ -11,16 +19,29 @@ import { useNavigate } from "react-router-dom";
 import VehicleBrandScroller from "../components/home/VehicleBrandScroller";
 import WhyBuyFromUs from "../components/home/WhyBuyFromUs";
 
+/**
+ * Home page component
+ * Serves as the main landing page for the application
+ *
+ * @returns {JSX.Element} Home page component
+ */
 export default function Home() {
+  // State for different product listings
   const [allItems, setAllItems] = useState([]);
   const [discountItems, setDiscountItems] = useState([]);
   const [categories, setCategories] = useState(allCategories);
+
+  // Tab state for switching between product views
   const [clickedTab, setClickedTab] = useState<
     "latest" | "discount" | "trending"
   >("latest");
 
   const navigate = useNavigate();
 
+  /**
+   * Fetches all items from the API
+   * Used to populate the Latest and Trending tabs
+   */
   const getAllItems = async () => {
     try {
       const response = await api.get("item/all");
@@ -30,6 +51,10 @@ export default function Home() {
     }
   };
 
+  /**
+   * Fetches items with discounts from the API
+   * Used to populate the Sale Products tab
+   */
   const getDiscountItems = async () => {
     try {
       const response = await api.get(`item/discounts`);
@@ -39,10 +64,17 @@ export default function Home() {
     }
   };
 
+  /**
+   * Navigates to shop page with selected category filter
+   * @param {string} cat - Category to filter by
+   */
   const navToCategory = (cat: string) => {
     navigate("/shop", { state: { cat } });
   };
 
+  /**
+   * Fetch data and scroll to top when component mounts
+   */
   useEffect(() => {
     getAllItems();
     getDiscountItems();
@@ -51,9 +83,11 @@ export default function Home() {
 
   return (
     <main className="flex flex-col flex-grow w-screen items-center bg-gray-50">
+      {/* Hero slider */}
       <Slider />
 
       <Section className="gap-28 mt-11">
+        {/* Promotional category cards */}
         <div className="flex w-full gap-x-10 justify-center">
           <OfferCard
             h1="Engine Components"

@@ -1,30 +1,57 @@
+/**
+ * ChatBot Component
+ *
+ * Provides an AI-powered chat assistant for users to get help with products,
+ * orders, and general information. Uses Google's Generative AI model (Gemini).
+ *
+ * @module Components/ChatBot
+ */
 import { useEffect, useRef, useState } from "react";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { getPromt } from "../data/chatbot";
+import { Link } from "react-router-dom";
+import { FiLink } from "react-icons/fi";
 import { useSelector } from "react-redux";
 import { RootState } from "../store/store";
 import { MessageSquare, Send, X, Sparkles, Bot } from "lucide-react";
 
+/**
+ * Interface for chat message objects
+ * @interface Message
+ */
 interface Message {
+  /** Indicates whether the message is from the user or the AI bot */
   sender: "user" | "bot";
+  /** Content of the message */
   text: any;
 }
 
+/**
+ * ChatBot component that provides an AI assistant interface
+ * @returns {JSX.Element} ChatBot component
+ */
 export default function ChatBot() {
+  // State for UI and chat functionality
   const [chatOpen, setChatOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const chatRef = useRef<HTMLDivElement>(null);
 
+  // Get cart and user data from Redux store
   const { cartId } = useSelector((root: RootState) => root.cart);
   const { user } = useSelector((root: RootState) => root.user);
 
+  // Initialize Google Generative AI
   const genAI = new GoogleGenerativeAI(
     "AIzaSyCO12PlmLawcTlm2vitVPfY_wnjjOFLUEM"
   );
   const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
+  /**
+   * Auto-scroll chat window to bottom when new messages are added
+   * Also adds welcome message when chat is first opened
+   */
   useEffect(() => {
     // Add welcome message when chat is first opened
     if (chatOpen && messages.length === 0) {
@@ -41,17 +68,30 @@ export default function ChatBot() {
     }
   }, [messages, chatOpen]);
 
+  /**
+   * Handles sending user message and getting AI response
+   * Controls the chat flow and UI state during the interaction
+   */
   const sendMessage = async () => {
     if (!input.trim()) return;
 
+    // Add user message to chat
     const userMessage: Message = { sender: "user", text: input };
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
+
+    // Show typing indicator while waiting for AI response
     setIsTyping(true);
     await getAiRespond(userMessage.text);
     setIsTyping(false);
   };
 
+  /**
+   * Gets AI response based on user input
+   * Calls the AI model and adds the response to the chat
+   *
+   * @param {string} input - User's message text
+   */
   const getAiRespond = async (input: string) => {
     try {
       const { response } = await model.generateContent(
@@ -94,12 +134,12 @@ export default function ChatBot() {
         onClick={() => setChatOpen(!chatOpen)}
         className={`group flex items-center justify-center rounded-full w-14 h-14 ${
           chatOpen ? "bg-slate-700" : "bg-orange-500 hover:bg-orange-600"
-        } text-white shadow-lg transition-all duration-200 ease-in-out hover:scale-105 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2`}
+        } text-white shadow-lg transition-all duration-200 ease-in-out hover:scale-110 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2 overflow-hidden`}
       >
         {chatOpen ? (
-          <X className="h-6 w-6" />
+          <X className="h-6 w-6 transition-transform duration-200" />
         ) : (
-          <MessageSquare className="h-6 w-6" />
+          <MessageSquare className="h-6 w-6 transition-transform duration-200 group-hover:scale-110" />
         )}
       </button>
 
@@ -128,6 +168,7 @@ export default function ChatBot() {
           ref={chatRef}
           className="flex-1 overflow-y-auto p-4 space-y-3 text-sm bg-gray-50"
         >
+          {/* Render chat messages */}
           {messages.map((msg, index) => (
             <div
               key={index}
@@ -147,6 +188,7 @@ export default function ChatBot() {
             </div>
           ))}
 
+          {/* Typing indicator */}
           {isTyping && (
             <div className="flex justify-start">
               <div className="bg-white text-slate-600 border border-gray-200 rounded-lg rounded-tl-none shadow-sm p-3 max-w-[85%]">

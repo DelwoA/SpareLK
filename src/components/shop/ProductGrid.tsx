@@ -1,3 +1,11 @@
+/**
+ * ProductGrid Component
+ *
+ * Displays products in either grid or list view with responsive layout.
+ * Includes image handling, discount calculations, rating display, and add-to-cart functionality.
+ *
+ * @module Components/Shop/ProductGrid
+ */
 import { Link } from "react-router-dom";
 import { Heart, ShoppingCart, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,24 +20,42 @@ const productCardStyles = {
   link: "text-current hover:text-current no-underline",
 };
 
+/**
+ * Props interface for the ProductGrid component
+ * @interface ProductGridProps
+ */
 interface ProductGridProps {
+  /** Array of product items to display */
   items: any[];
+  /** Display mode - grid for card layout, list for horizontal layout */
   viewMode: "grid" | "list";
 }
 
+/**
+ * ProductGrid component
+ * Displays products in either grid or list view with responsive layout
+ *
+ * @param {ProductGridProps} props - Component props
+ * @returns {JSX.Element} ProductGrid component
+ */
 export function ProductGrid({
   items = [],
   viewMode = "grid",
 }: ProductGridProps) {
   const dispatch = useDispatch();
+  // Track loading state for each item when adding to cart
   const [loadingStates, setLoadingStates] = useState<{
     [key: string]: boolean;
   }>({});
+  // Cache for item images to prevent unnecessary API calls
   const [imageCache, setImageCache] = useState<{
     [key: string]: string;
   }>({});
 
-  // Load and cache images when items change
+  /**
+   * Load and cache images when items change
+   * Handles various image formats and provides fallbacks
+   */
   useEffect(() => {
     const fetchItemDetails = async () => {
       const newCache: { [key: string]: string } = { ...imageCache };
@@ -135,6 +161,12 @@ export function ProductGrid({
     fetchItemDetails();
   }, [items]);
 
+  /**
+   * Adds an item to the cart
+   * Shows a loading indicator and displays toast notification
+   *
+   * @param {any} item - The product to add to the cart
+   */
   const addToCart = (item: any) => {
     // Set loading state for this specific item
     setLoadingStates((prev) => ({ ...prev, [item._id]: true }));
@@ -147,7 +179,13 @@ export function ProductGrid({
     }, 300);
   };
 
-  // Helper function to get image URL
+  /**
+   * Helper function to get image URL
+   * Returns cached image or placeholder while loading
+   *
+   * @param {any} item - The product item
+   * @returns {string} Image URL
+   */
   const getImageUrl = (item: any) => {
     // If we have a cached image for this item, use it
     if (imageCache[item._id]) {
@@ -158,12 +196,22 @@ export function ProductGrid({
     return "https://placehold.co/400x400/f8fafc/94a3b8?text=Loading...";
   };
 
-  // Helper function to handle click on card elements that shouldn't navigate
+  /**
+   * Helper function to handle click on card elements that shouldn't navigate
+   * Prevents event propagation for actions like add-to-cart
+   *
+   * @param {React.MouseEvent} e - Mouse event
+   */
   const handleStopPropagation = (e: React.MouseEvent) => {
     e.stopPropagation();
   };
 
-  // Check if product is new - either by condition or by creation date
+  /**
+   * Check if product is new - either by condition or by creation date
+   *
+   * @param {any} item - The product item
+   * @returns {boolean} True if product is new
+   */
   const isNewProduct = (item: any) => {
     // Check if condition is explicitly "New"
     if (item.condition === "New") return true;
@@ -179,7 +227,12 @@ export function ProductGrid({
     return false;
   };
 
-  // Calculate discount percentage for an item
+  /**
+   * Calculate discount percentage for an item
+   *
+   * @param {any} item - The product item
+   * @returns {number} Discount percentage
+   */
   const getDiscountPercentage = (item: any) => {
     // Check if item has a discountPercentage property
     if (item.discountPercentage > 0) {
@@ -194,7 +247,12 @@ export function ProductGrid({
     return 0;
   };
 
-  // Get the brand logo URL if available
+  /**
+   * Get the brand logo URL if available
+   *
+   * @param {any} item - The product item
+   * @returns {string} Brand logo URL or empty string
+   */
   const getBrandLogo = (item: any): string => {
     if (item.brand) {
       const brandInfo = brands.find((b) => b.brand === item.brand);
@@ -205,7 +263,12 @@ export function ProductGrid({
     return ""; // Return empty string instead of null
   };
 
-  // Check if a brand has a logo
+  /**
+   * Check if a brand has a logo
+   *
+   * @param {any} item - The product item
+   * @returns {boolean} True if brand has logo
+   */
   const hasBrandLogo = (item: any): boolean => {
     if (item.brand) {
       const brandInfo = brands.find((b) => b.brand === item.brand);
@@ -214,7 +277,12 @@ export function ProductGrid({
     return false;
   };
 
-  // Get the number of reviews for an item
+  /**
+   * Get the number of reviews for an item
+   *
+   * @param {any} item - The product item
+   * @returns {number} Number of reviews
+   */
   const getReviewCount = (item: any) => {
     if (item.reviewCount) {
       return item.reviewCount;
@@ -225,6 +293,7 @@ export function ProductGrid({
     return 0;
   };
 
+  // Display empty state when no items are available
   if (items.length === 0) {
     return (
       <div className="w-full py-16 flex flex-col items-center justify-center text-center">
@@ -402,7 +471,7 @@ export function ProductGrid({
     );
   }
 
-  // Render the list view
+  // Render the list view - longer horizontal cards
   return (
     <div className="space-y-5 pb-16">
       {items.map((item) => (
