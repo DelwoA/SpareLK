@@ -17,6 +17,7 @@ import {
   FiSearch,
   FiMenu,
   FiX,
+  FiMail,
 } from "react-icons/fi";
 import { Search } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
@@ -166,9 +167,9 @@ const Navbar = () => {
               </Link>
             </Button>
             <Button variant="ghost" asChild className="px-2 md:px-3 lg:px-4">
-              <Link to="#footer" className="font-semibold text-slate-800">
+              <a href="#footer" className="font-semibold text-slate-800">
                 Contacts
-              </Link>
+              </a>
             </Button>
           </div>
         )}
@@ -440,6 +441,16 @@ const Navbar = () => {
                   </Link>
                 </li>
                 <li>
+                  <a
+                    href="#footer"
+                    className="flex items-center gap-3 p-2 rounded-md hover:bg-slate-100"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <FiMail className="text-slate-600 h-5 w-5" />
+                    <span className="font-medium">Contacts</span>
+                  </a>
+                </li>
+                <li>
                   <Link
                     to="/cart"
                     className="flex items-center gap-3 p-2 rounded-md hover:bg-slate-100"
@@ -578,6 +589,15 @@ const Navbar = () => {
               <FiGrid className="text-lg mb-0.5" />
               <span>Shop</span>
             </Link>
+
+            <a
+              href="#footer"
+              className="flex flex-col items-center text-xs text-slate-600"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              <FiMail className="text-lg mb-0.5" />
+              <span>Contacts</span>
+            </a>
 
             <Link
               to="/cart"

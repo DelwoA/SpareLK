@@ -80,7 +80,7 @@ function ItemCard({ itm }: ItemCardProps) {
   return (
     <Link
       to={`/item/${itm._id}`}
-      className="relative bg-white rounded-lg border shadow-sm h-full flex flex-col hover:shadow-md transition-shadow"
+      className="relative bg-white rounded-lg border shadow-sm h-full flex flex-col hover:shadow-md transition-shadow group"
     >
       {itm.discount > 0 && (
         <div className="absolute top-2 left-2 z-10 bg-orange-500 text-white px-2 py-1 text-xs font-medium rounded">
@@ -88,11 +88,11 @@ function ItemCard({ itm }: ItemCardProps) {
         </div>
       )}
 
-      <div className="p-2 aspect-square bg-slate-50 flex items-center justify-center">
+      <div className="p-2 aspect-square bg-slate-50 flex items-center justify-center overflow-hidden">
         <img
           src={`http://localhost:3000/images/${itm.image}`}
           alt={itm.name}
-          className="max-h-full max-w-full object-contain"
+          className="max-h-full max-w-full object-contain transition-transform duration-300 group-hover:scale-110"
         />
       </div>
 
