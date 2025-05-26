@@ -27,7 +27,7 @@ interface CategoryCardProps {
  * @param {CategoryCardProps} props - Component props
  * @returns {JSX.Element} CategoryCard component
  */
-export default function CategoryCard({ category, index }: CategoryCardProps) {
+export default function CategoryCard({ category }: CategoryCardProps) {
   const navigate = useNavigate();
 
   /**

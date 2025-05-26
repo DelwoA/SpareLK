@@ -1,14 +1,13 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import Swal from "sweetalert2";
+
 import { RootState } from "../../store/store";
 import { api } from "../../api/api";
-import { TItem } from "../../types";
+
 import {
   Package,
   Search,
-  Filter,
   ChevronDown,
   ChevronRight,
   Calendar,
@@ -17,18 +16,14 @@ import {
   CheckCircle2,
   AlertCircle,
   MapPin,
-  ExternalLink,
   ShoppingBag,
-  ArrowDownUp,
   CreditCard,
-  XCircle,
   AlertTriangle,
   Check,
   RefreshCcw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Link } from "react-router-dom";
+
 import {
   DropdownMenu,
   DropdownMenuContent,

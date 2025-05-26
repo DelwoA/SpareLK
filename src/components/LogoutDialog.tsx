@@ -49,8 +49,8 @@ export default function LogoutDialog({ onClose, isOpen }: LogoutDialogProps) {
    */
   const handleLogout = () => {
     // Clear cookie if needed
-    const removeCookie = (document.cookie =
-      "user=; Max-Age=0; path=/; domain=" + window.location.hostname);
+    document.cookie =
+      "user=; Max-Age=0; path=/; domain=" + window.location.hostname;
 
     // Update UI first for better perceived performance
     onClose();

@@ -9,8 +9,7 @@
 import { useEffect, useRef, useState } from "react";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { getPromt } from "../data/chatbot";
-import { Link } from "react-router-dom";
-import { FiLink } from "react-icons/fi";
+
 import { useSelector } from "react-redux";
 import { RootState } from "../store/store";
 import { MessageSquare, Send, X, Sparkles, Bot } from "lucide-react";

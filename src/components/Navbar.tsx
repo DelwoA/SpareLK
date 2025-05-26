@@ -22,21 +22,20 @@ import {
   FiChevronDown,
   FiHome,
   FiGrid,
-  FiLogOut,
   FiSearch,
   FiMenu,
   FiX,
   FiMail,
 } from "react-icons/fi";
 import { Search } from "lucide-react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { RootState } from "../store/store";
-import { userActions } from "../reducers/userSlice";
+
 import Li from "./Li";
 import { EUserRole } from "../types";
 import { Button } from "@/components/ui/button";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+
 import LogoutDialog from "./LogoutDialog";
 import Logo from "./Logo";
 import { X, AlertTriangle } from "lucide-react";
@@ -62,10 +61,8 @@ const Navbar = () => {
       : "";
 
   const [keyword, setKeyword] = useState(initialKeyword);
-  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const [isLogoutDialogOpen, setLogoutDialogOpen] = useState(false);
 
-  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   /**
@@ -74,7 +71,6 @@ const Navbar = () => {
    */
   useEffect(() => {
     const handleResize = () => {
-      setWindowWidth(window.innerWidth);
       if (window.innerWidth >= 768) {
         setIsMobileMenuOpen(false);
       }

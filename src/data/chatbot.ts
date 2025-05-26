@@ -1,7 +1,11 @@
 import { TUser } from "../types";
 
-export const getPromt = (input: string, cartId: string, user: TUser): string => {
-    const prompt = `
+export const getPromt = (
+  input: string,
+  _cartId: string,
+  user: TUser
+): string => {
+  const prompt = `
 Spare.lk is an online marketplace for buying and selling vehicle spare parts. It connects buyers with trusted sellers offering a wide range of new and used auto parts, including engines, brakes, suspension, electronics, and more.
 
 ### Key Features of Spare.lk:
@@ -37,21 +41,21 @@ No matter what return text output dong include navigations, routes:
 Now generate the response.
 `;
 
-// ### Important Links:
-// - home page - (/),
-// - cart page- (/cart),
-// - all products/search products page- (/shop),
-// - checkout or place order - (/cart/place-order/${cartId}),
-// - contact (/#footer),
-// - user profile - (/profile),
-// - order history - (/profile/my-orders),
-// - if role buyer then be a seller to - (/profile/seller-form),
-// - if role seller then update store profile - /profile/seller-form),
+  // ### Important Links:
+  // - home page - (/),
+  // - cart page- (/cart),
+  // - all products/search products page- (/shop),
+  // - checkout or place order - (/cart/place-order/${cartId}),
+  // - contact (/#footer),
+  // - user profile - (/profile),
+  // - order history - (/profile/my-orders),
+  // - if role buyer then be a seller to - (/profile/seller-form),
+  // - if role seller then update store profile - /profile/seller-form),
 
-// No matter what return a string array like this no need to be json and used markdowns:
-// [text, [links[label, path]]]
-// ### Example Prompt:
-// ["Hi <name>, how can I help you today?",[["Browse Spare Parts", "/shop"],["My Orders & Purchases", "/profile/my-orders"]]]
+  // No matter what return a string array like this no need to be json and used markdowns:
+  // [text, [links[label, path]]]
+  // ### Example Prompt:
+  // ["Hi <name>, how can I help you today?",[["Browse Spare Parts", "/shop"],["My Orders & Purchases", "/profile/my-orders"]]]
 
-    return prompt;
-}
+  return prompt;
+};
